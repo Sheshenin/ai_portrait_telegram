@@ -41,7 +41,26 @@ Telegram-бот для создания AI-портретов с перенос�
 - **Telegram Bot**: python-telegram-bot
 - **Язык**: Python 3.8+
 
-## Установка
+## Быстрый старт: Деплой в облако
+
+**🚀 Рекомендуется**: Разверните бота на бесплатном хостинге за 5 минут!
+
+### Деплой на Render.com (бесплатно)
+
+1. Создайте аккаунт на [render.com](https://render.com)
+2. Подключите этот GitHub репозиторий
+3. Добавьте Environment Variables:
+   - `TELEGRAM_BOT_TOKEN` - токен от [@BotFather](https://t.me/BotFather)
+   - `GOOGLE_API_KEY` - ключ от [Google AI Studio](https://aistudio.google.com/app/apikey)
+4. Нажмите "Deploy" - готово!
+
+**📖 Подробная инструкция**: См. [DEPLOYMENT.md](DEPLOYMENT.md) для пошагового руководства.
+
+**💡 Альтернативы**: Koyeb, Railway, Fly.io (подробности в [DEPLOYMENT.md](DEPLOYMENT.md))
+
+---
+
+## Локальная установка
 
 ### 1. Клонирование репозитория
 
