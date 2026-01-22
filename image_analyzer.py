@@ -88,7 +88,7 @@ class ImageAnalyzer:
         image = self.compress_image(image_path, max_size=1024)
 
         # Детальный промпт для анализа медиума и стиля (как в рабочем приложении)
-        prompt = """Perform a two-stage forensic analysis of this image's medium and style:
+        prompt = """Perform a comprehensive forensic analysis of this image:
 
 STAGE 1: MEDIUM CLASSIFICATION
 Identify the exact medium: Is it a high-fidelity Photograph, an Oil/Acrylic Painting, a Watercolor, a Pencil/Charcoal Sketch, an Etching, or Digital Art?
@@ -99,17 +99,27 @@ STAGE 2: MEDIUM-SPECIFIC TECHNICAL SPECIFICATION
 - IF SKETCH: Describe graphite/charcoal grit, smudge marks, eraser ghosts, hatching density, and paper fibers.
 - IF DIGITAL: Identify the specific software aesthetic (brush engines used).
 
-STAGE 3: COMPOSITION & CHARACTER
-1. POSE & PLACEMENT: Exact posture and placement in frame.
-2. GENDER & CLOTHING: Identify the subject's gender and describe the outfit's material and style.
-3. ENVIRONMENT: Background details.
-4. ASPECT RATIO: Specify the exact aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
+STAGE 3: COMPOSITION & CHARACTER (CRITICAL - DESCRIBE IN DETAIL)
+1. POSE & PLACEMENT: Exact posture, body position, and placement in frame (centered, off-center, rule of thirds, etc.)
+2. CLOTHING & ACCESSORIES: Describe every detail - fabric type, color, style, era, buttons, jewelry, hat, everything visible
+3. ENVIRONMENT & BACKGROUND: Complete description - indoor/outdoor, objects, scenery, depth, foreground/background elements
+4. ATMOSPHERE: Mood, time of day, weather, emotional tone, color temperature (warm/cool)
+5. LIGHTING: Direction, intensity, shadows, highlights, color of light
+6. COLORS: Dominant colors, color palette, saturation, contrast
+7. CAMERA ANGLE: Eye level, low angle, high angle, perspective
+8. ASPECT RATIO: Exact ratio (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
 
-Output a "Medium-Locked Technical Specification" that mandates these exact physical properties. Also return the aspect ratio.
+Output a complete specification that includes ALL these details so the image can be recreated exactly.
 
 IMPORTANT: Return response in JSON format:
 {
-  "medium_specification": "detailed medium-locked technical specification",
+  "medium_specification": "detailed medium and technique description",
+  "clothing": "complete clothing and accessories description",
+  "environment": "complete background and environment description",
+  "atmosphere": "mood, lighting, time of day, emotional tone",
+  "colors": "color palette and scheme",
+  "pose": "exact body position and posture",
+  "composition": "framing, placement, camera angle",
   "aspect_ratio": "aspect ratio like 1:1, 16:9, etc."
 }"""
 
@@ -292,37 +302,67 @@ IMPORTANT: Return response in JSON format:
 
     def refine_with_person(
         self,
-        medium_specification: str,
+        reference_data: Dict[str, str],
         person_image_path: str
     ) -> str:
         """
-        Refine medium specification with person's photo to create final generation prompt
+        Refine reference specification with person's photo to create final generation prompt
 
         Args:
-            medium_specification: Detailed style specification from reference analysis
+            reference_data: Complete reference analysis (medium, clothing, environment, etc.)
             person_image_path: Path to person's photo
 
         Returns:
-            Final generation prompt harmonizing identity with medium
+            Final generation prompt harmonizing identity with reference scene
         """
         logger.info("Refining prompt with person photo...")
 
         # Compress person image
         image = self.compress_image(person_image_path, max_size=1024)
 
-        # Prompt based on the working app
-        prompt = f"""TECHNICAL SPECIFICATION TEMPLATE: "{medium_specification}".
+        # Comprehensive prompt that includes ALL elements from reference
+        medium_spec = reference_data.get('medium_specification', '')
+        clothing = reference_data.get('clothing', '')
+        environment = reference_data.get('environment', '')
+        atmosphere = reference_data.get('atmosphere', '')
+        colors = reference_data.get('colors', '')
+        pose = reference_data.get('pose', '')
+        composition = reference_data.get('composition', '')
 
-TASK: Harmonize Identity with the Specific Medium.
+        prompt = f"""REFERENCE IMAGE COMPLETE SPECIFICATION:
 
-1. IDENTITY: Maintain the exact features of the person in the photo (race, gender, age, eyes, hair).
-2. MEDIUM INTEGRITY (CRITICAL):
-   - If the template specifies a PHOTOGRAPH: The result MUST be a photo. No painterly effects. Use realistic skin textures, pores, and optical lens artifacts.
-   - If the template specifies a PAINTING/SKETCH: The face MUST be rendered using the same brushstrokes/pencil marks as the rest of the image. The person must look like they were "drawn" or "painted" by that artist, not a photo filtered to look like art.
-3. GENDER-AWARE ADAPTATION: If the person in the photo's gender differs from the template, adapt the clothing/styling to be gender-appropriate for the target while preserving the exact historical era and material texture.
-4. NO SMOOTHING: Forbid all digital smoothness. Demand raw texture: paper grain, film grain, or canvas grit across the entire face.
+MEDIUM & TECHNIQUE: {medium_spec}
 
-Output a single comprehensive generation prompt."""
+CLOTHING & OUTFIT: {clothing}
+
+ENVIRONMENT & BACKGROUND: {environment}
+
+ATMOSPHERE: {atmosphere}
+
+COLORS: {colors}
+
+POSE & BODY POSITION: {pose}
+
+COMPOSITION: {composition}
+
+---
+
+TASK: Create a portrait of the person in this photo, but place them INTO the scene described above.
+
+CRITICAL INSTRUCTIONS:
+1. FACE IDENTITY: Use the EXACT face from this photo - this person must be 100% recognizable (facial features, proportions, age, ethnicity)
+2. CLOTHING: Use the CLOTHING from the reference specification above (adapt for gender if needed, but keep style/era/fabric)
+3. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
+4. POSE: Use the EXACT BODY POSITION and posture from specification
+5. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
+6. COLORS: Use the EXACT color palette from specification
+7. COMPOSITION: Match the EXACT framing and camera angle from specification
+8. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
+9. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
+
+Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere.
+
+Output a single comprehensive generation prompt that combines everything."""
 
         try:
             # Convert image to base64
