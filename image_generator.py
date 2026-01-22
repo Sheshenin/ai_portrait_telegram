@@ -98,8 +98,21 @@ class ImageGenerator:
             # Load and compress person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Final generation prompt based on working app
-            generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas. LIKENESS IS MANDATORY. EXECUTE PROMPT: {refined_prompt}"""
+            # Final generation prompt with emphasis on color preservation
+            generation_prompt = f"""MASTERPIECE RENDERING.
+
+CRITICAL REQUIREMENTS:
+1. MEDIUM INTEGRITY: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas.
+2. LIKENESS IS MANDATORY: The person must be 100% recognizable.
+3. COLOR GRADING PRESERVATION (CRITICAL):
+   - NO AUTO WHITE BALANCE CORRECTION - preserve exact color temperature from prompt
+   - NO AUTO EXPOSURE CORRECTION - preserve brightness levels as specified
+   - If prompt specifies WARM tones (orange, golden, amber) - output MUST be warm, do NOT correct to neutral/cool
+   - If prompt specifies COOL tones (blue, cyan) - output MUST be cool, do NOT warm it up
+   - Preserve exact color grading, saturation, and contrast as specified in prompt
+   - Think: if it's an orange sunset scene, the ENTIRE image must have that orange/amber color cast
+
+EXECUTE PROMPT: {refined_prompt}"""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")

@@ -105,7 +105,14 @@ STAGE 3: COMPOSITION & CHARACTER (CRITICAL - DESCRIBE IN DETAIL)
 3. ENVIRONMENT & BACKGROUND: Complete description - indoor/outdoor, objects, scenery, depth, foreground/background elements
 4. ATMOSPHERE: Mood, time of day, weather, emotional tone, color temperature (warm/cool)
 5. LIGHTING: Direction, intensity, shadows, highlights, color of light
-6. COLORS: Dominant colors, color palette, saturation, contrast
+6. COLORS (EXTREMELY IMPORTANT):
+   - Dominant colors with exact hues (e.g., "deep orange", "warm amber", "cool blue", not just "orange" or "blue")
+   - Color temperature: warm (orange/red/yellow tones) vs cool (blue/cyan tones)
+   - White balance: neutral, warm shifted, cool shifted
+   - Color grading: any color tints applied to shadows/highlights/midtones
+   - Saturation level: highly saturated, muted, desaturated
+   - Contrast: high contrast, low contrast
+   - Any color filters or effects (sepia, vintage, faded, etc.)
 7. CAMERA ANGLE: Eye level, low angle, high angle, perspective
 8. ASPECT RATIO: Exact ratio (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
 
@@ -117,7 +124,7 @@ IMPORTANT: Return response in JSON format:
   "clothing": "complete clothing and accessories description",
   "environment": "complete background and environment description",
   "atmosphere": "mood, lighting, time of day, emotional tone",
-  "colors": "color palette and scheme",
+  "colors": "DETAILED color palette: exact hues, color temperature, white balance, color grading, saturation, contrast, filters",
   "pose": "exact body position and posture",
   "composition": "framing, placement, camera angle",
   "aspect_ratio": "aspect ratio like 1:1, 16:9, etc."
@@ -355,12 +362,20 @@ CRITICAL INSTRUCTIONS:
 3. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
 4. POSE: Use the EXACT BODY POSITION and posture from specification
 5. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
-6. COLORS: Use the EXACT color palette from specification
+6. COLORS & COLOR GRADING (CRITICAL - NO AUTO CORRECTION):
+   - Use the EXACT color palette, color temperature, and white balance from specification
+   - If the reference has WARM colors (orange sunset, golden hour) - PRESERVE the warmth, do NOT auto-correct to neutral
+   - If the reference has COOL colors (blue hour, cyan tones) - PRESERVE the coolness, do NOT warm it up
+   - NO AUTO WHITE BALANCE CORRECTION - keep the exact color temperature
+   - NO AUTO EXPOSURE CORRECTION - preserve the brightness levels as specified
+   - Apply the EXACT color grading (shadows/highlights/midtones color tints)
+   - Match the EXACT saturation and contrast levels
+   - If there are color filters (sepia, vintage, faded) - apply them exactly
 7. COMPOSITION: Match the EXACT framing and camera angle from specification
 8. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
 9. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
 
-Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere.
+Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere. The color grading MUST match - if it's an orange sunset, the final image MUST be orange, not corrected to yellow or neutral.
 
 Output a single comprehensive generation prompt that combines everything."""
 
