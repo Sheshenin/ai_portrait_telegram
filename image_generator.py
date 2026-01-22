@@ -98,25 +98,31 @@ class ImageGenerator:
             reference_image = self.compress_image(reference_image_path, max_size=1024)
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Simple and clear prompt explaining the role of each image
-            generation_prompt = """IMAGE 1 (Reference - Style Source):
-- Copy the ARTISTIC STYLE: colors, lighting, technique, visual effects, color grading
-- Copy the COMPOSITION: camera angle, framing, subject placement
-- Copy the POSE: body position, posture, dynamics
+            # Clear prompt with emphasis on face replacement
+            # Put person first to emphasize identity preservation
+            generation_prompt = """CRITICAL: REPLACE the face in Image 2 with the face from Image 1.
 
-IMAGE 2 (Person - Identity Source):
-- Use FACE IDENTITY ONLY from this person
-- Person must be 100% recognizable
-- DO NOT copy pose or framing from this image
+IMAGE 1 (Person Photo - FACE IDENTITY):
+- This person's face is the PRIMARY REQUIREMENT
+- The generated portrait MUST show THIS EXACT PERSON
+- 100% facial recognition - preserve all facial features, proportions, unique characteristics
+- The person must be instantly recognizable
 
-TASK: Create a portrait combining the style, composition and pose from Image 1 with the face identity from Image 2."""
+IMAGE 2 (Style Reference - ARTISTIC TEMPLATE):
+- Copy ONLY the artistic style: colors, lighting, technique, visual effects
+- Copy ONLY the composition: camera angle, framing, subject placement
+- Copy ONLY the pose: body position, posture, dynamics
+- DO NOT keep the face from this image - REPLACE it with face from Image 1
+
+TASK: Take Image 2 as artistic template, but REPLACE the face with the person from Image 1. The person from Image 1 must be 100% recognizable in the final result."""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
             # Convert both images to base64 for new SDK
-            reference_b64 = self._image_to_base64(reference_image)
+            # IMPORTANT: Put person FIRST to emphasize face identity
             person_b64 = self._image_to_base64(person_image)
+            reference_b64 = self._image_to_base64(reference_image)
 
             # Retry logic for handling temporary API overload (503, 429)
             max_retries = 3
@@ -128,14 +134,14 @@ TASK: Create a portrait combining the style, composition and pose from Image 1 w
                     logger.info(f"API call attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with NEW SDK including imageConfig for aspect_ratio control
-                    # Pass TWO images: reference (style) and person (identity)
+                    # Pass TWO images: person FIRST (identity priority), then reference (style template)
                     response = self.client.models.generate_content(
                         model=self.model_name,
                         contents={
                             'parts': [
                                 {'text': generation_prompt},
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': reference_b64}},  # Image 1: style reference
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': person_b64}}      # Image 2: face identity
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': person_b64}},      # Image 1: face identity (PRIMARY)
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': reference_b64}}   # Image 2: style template
                             ]
                         },
                         config={
