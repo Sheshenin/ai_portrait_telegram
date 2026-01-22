@@ -148,12 +148,13 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
                     logger.info(f"Reference analysis attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with new SDK using TEXT model (not image model)
+                    # CRITICAL: Image FIRST, then text (like working app)
                     response = self.client.models.generate_content(
                         model=self.text_model,
                         contents={
                             'parts': [
-                                {'text': prompt},
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
+                                {'text': prompt}
                             ]
                         }
                     )
@@ -253,12 +254,13 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
                     logger.info(f"Person analysis attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with new SDK using TEXT model (not image model)
+                    # CRITICAL: Image FIRST, then text (like working app)
                     response = self.client.models.generate_content(
                         model=self.text_model,
                         contents={
                             'parts': [
-                                {'text': prompt},
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
+                                {'text': prompt}
                             ]
                         }
                     )
