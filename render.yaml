@@ -13,8 +13,10 @@ services:
       - key: GOOGLE_API_KEY
         sync: false  # Нужно будет добавить вручную в Render Dashboard
       - key: GOOGLE_VISION_MODEL
-        value: gemini-1.5-flash
+        value: gemini-2.5-flash-image
       - key: GOOGLE_IMAGE_MODEL
-        value: imagen-3.0-generate-001
+        value: gemini-2.5-flash-image
+      - key: WEBHOOK_URL
+        value: https://ai-portrait-telegram.onrender.com
       - key: PYTHON_VERSION
         value: 3.11.0

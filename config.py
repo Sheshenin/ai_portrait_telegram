@@ -10,6 +10,10 @@ load_dotenv()
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
+# Webhook Configuration (for production deployment)
+WEBHOOK_URL = os.getenv('WEBHOOK_URL', 'https://ai-portrait-telegram.onrender.com')
+PORT = int(os.getenv('PORT', 10000))
+
 # Google AI Configuration (for Gemini Vision and Image Generation)
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 GOOGLE_VISION_MODEL = os.getenv('GOOGLE_VISION_MODEL', 'gemini-2.5-flash-image')
