@@ -57,30 +57,35 @@ class ImageGenerator:
             logger.info("Calling Gemini API for image generation...")
 
             # Generate content with image and prompt
+            # Note: aspect_ratio is handled in the prompt, Gemini will return image in response
             response = self.model.generate_content(
-                [person_image, generation_prompt],
-                generation_config={
-                    "response_mime_type": "image/jpeg"
-                }
+                [person_image, generation_prompt]
             )
 
             # Extract generated image from response
             if not response.candidates or len(response.candidates) == 0:
                 logger.error("No candidates in response")
+                logger.error(f"Response: {response}")
                 return None
 
             candidate = response.candidates[0]
             if not candidate.content or not candidate.content.parts:
                 logger.error("No content parts in response")
+                logger.error(f"Candidate: {candidate}")
                 return None
 
+            logger.info(f"Response has {len(candidate.content.parts)} parts")
+
             # Find the image in response parts
-            for part in candidate.content.parts:
+            for i, part in enumerate(candidate.content.parts):
+                logger.info(f"Part {i}: has inline_data={hasattr(part, 'inline_data')}")
                 if hasattr(part, 'inline_data') and part.inline_data:
                     logger.info("Successfully extracted generated image")
-                    return part.inline_data.data
+                    image_data = part.inline_data.data
+                    logger.info(f"Image data type: {type(image_data)}, length: {len(image_data) if image_data else 0}")
+                    return image_data
 
-            logger.error("No image data found in response")
+            logger.error("No image data found in response parts")
             return None
 
         except Exception as e:
