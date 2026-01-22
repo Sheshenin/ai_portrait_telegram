@@ -125,25 +125,14 @@ class ImageGenerator:
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
-            # Convert aspect_ratio string (e.g., "9:16") to config format
-            # Try multiple approaches as google-generativeai SDK documentation is unclear
-
-            # Approach 1: Try passing aspect_ratio in generation_config
-            try:
-                generation_config = {
-                    "temperature": 0.4,
-                    "image_config": {
-                        "aspect_ratio": aspect_ratio
-                    }
-                }
-            except:
-                # Fallback if image_config not supported
-                generation_config = genai.types.GenerationConfig(
-                    temperature=0.4,
-                )
+            # Note: google-generativeai (deprecated SDK) does not support image_config
+            # Relying on explicit dimensions in prompt instead
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.4,
+            )
 
             # Generate content with image and prompt
-            # aspect_ratio from reference image determines output format
+            # aspect_ratio is enforced through explicit pixel dimensions in prompt
             response = self.model.generate_content(
                 [person_image, generation_prompt],
                 generation_config=generation_config,
