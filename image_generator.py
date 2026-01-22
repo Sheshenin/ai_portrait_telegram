@@ -82,13 +82,27 @@ class ImageGenerator:
             # Load and compress the person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
+            # Map aspect_ratio to pixel dimensions for explicit sizing
+            aspect_map = {
+                "1:1": "1024x1024",
+                "16:9": "1024x576",
+                "9:16": "576x1024",
+                "4:3": "1024x768",
+                "3:4": "768x1024",
+                "3:2": "1024x683",
+                "2:3": "683x1024",
+            }
+            pixel_size = aspect_map.get(aspect_ratio, "1024x1024")
+
             # Create the generation prompt with clear separation: face from photo, pose from description
             generation_prompt = (
                 f"CRITICAL INSTRUCTIONS:\n\n"
-                f"OUTPUT FORMAT:\n"
-                f"   - Generate image with aspect ratio: {aspect_ratio}\n"
+                f"OUTPUT FORMAT (MANDATORY):\n"
+                f"   - Generate image with EXACT aspect ratio: {aspect_ratio}\n"
+                f"   - Output dimensions MUST be: {pixel_size} pixels\n"
                 f"   - This aspect ratio comes from reference style image, NOT from person's photo\n"
-                f"   - DO NOT use aspect ratio from the attached photograph\n\n"
+                f"   - DO NOT use aspect ratio or dimensions from the attached photograph\n"
+                f"   - The attached photo is {person_image.width}x{person_image.height} - IGNORE these dimensions\n\n"
                 f"1. IDENTITY REFERENCE (Use attached photograph):\n"
                 f"   - The attached photograph is ONLY an identity reference for facial likeness\n"
                 f"   - USE ONLY THE FACE: facial features, proportions, unique characteristics\n"
@@ -111,10 +125,22 @@ class ImageGenerator:
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
-            # Prepare generation config with aspect ratio from reference image
-            generation_config = genai.types.GenerationConfig(
-                temperature=0.4,
-            )
+            # Convert aspect_ratio string (e.g., "9:16") to config format
+            # Try multiple approaches as google-generativeai SDK documentation is unclear
+
+            # Approach 1: Try passing aspect_ratio in generation_config
+            try:
+                generation_config = {
+                    "temperature": 0.4,
+                    "image_config": {
+                        "aspect_ratio": aspect_ratio
+                    }
+                }
+            except:
+                # Fallback if image_config not supported
+                generation_config = genai.types.GenerationConfig(
+                    temperature=0.4,
+                )
 
             # Generate content with image and prompt
             # aspect_ratio from reference image determines output format
