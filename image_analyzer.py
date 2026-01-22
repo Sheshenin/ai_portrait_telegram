@@ -20,7 +20,7 @@ class ImageAnalyzer:
 
     def __init__(self):
         self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
-        self.model_name = config.GOOGLE_VISION_MODEL
+        self.text_model = config.GOOGLE_TEXT_MODEL  # For text analysis stages 1-2
 
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
@@ -126,9 +126,9 @@ IMPORTANT: Return response in JSON format:
                 try:
                     logger.info(f"Reference analysis attempt {attempt + 1}/{max_retries}")
 
-                    # Generate content with new SDK
+                    # Generate content with new SDK using TEXT model (not image model)
                     response = self.client.models.generate_content(
-                        model=self.model_name,
+                        model=self.text_model,
                         contents={
                             'parts': [
                                 {'text': prompt},
@@ -234,9 +234,9 @@ IMPORTANT: Return response in JSON format:
                 try:
                     logger.info(f"Person analysis attempt {attempt + 1}/{max_retries}")
 
-                    # Generate content with new SDK
+                    # Generate content with new SDK using TEXT model (not image model)
                     response = self.client.models.generate_content(
-                        model=self.model_name,
+                        model=self.text_model,
                         contents={
                             'parts': [
                                 {'text': prompt},
@@ -338,7 +338,7 @@ Output a single comprehensive generation prompt."""
                     logger.info(f"Refine prompt attempt {attempt + 1}/{max_retries}")
 
                     response = self.client.models.generate_content(
-                        model=self.model_name,
+                        model=self.text_model,
                         contents={
                             'parts': [
                                 {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
