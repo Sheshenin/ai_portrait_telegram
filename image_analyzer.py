@@ -6,6 +6,7 @@ import logging
 import json
 import io
 import base64
+import time
 from typing import Dict, Tuple
 from PIL import Image
 from google import genai
@@ -170,16 +171,52 @@ class ImageAnalyzer:
             # Convert image to base64 for new SDK
             image_b64 = self._image_to_base64(image)
 
-            # Generate content with new SDK
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents={
-                    'parts': [
-                        {'text': prompt},
-                        {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
-                    ]
-                }
-            )
+            # Retry logic for handling temporary API overload (503, 429)
+            max_retries = 3
+            retry_delays = [2, 4, 8]  # Exponential backoff: 2s, 4s, 8s
+            response = None
+
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"Reference analysis attempt {attempt + 1}/{max_retries}")
+
+                    # Generate content with new SDK
+                    response = self.client.models.generate_content(
+                        model=self.model_name,
+                        contents={
+                            'parts': [
+                                {'text': prompt},
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                            ]
+                        }
+                    )
+
+                    # If successful, break out of retry loop
+                    logger.info("Reference analysis successful")
+                    break
+
+                except Exception as api_error:
+                    error_msg = str(api_error)
+
+                    # Check if it's a temporary error (503 overload, 429 rate limit)
+                    is_temporary = ('503' in error_msg or 'UNAVAILABLE' in error_msg or
+                                  '429' in error_msg or 'overloaded' in error_msg.lower() or
+                                  'rate limit' in error_msg.lower())
+
+                    if is_temporary and attempt < max_retries - 1:
+                        delay = retry_delays[attempt]
+                        logger.warning(f"Temporary API error (attempt {attempt + 1}/{max_retries}): {error_msg}")
+                        logger.info(f"Retrying in {delay} seconds...")
+                        time.sleep(delay)
+                    else:
+                        # Either not temporary error, or final attempt failed
+                        logger.error(f"API call failed: {error_msg}")
+                        raise
+
+            # Check if we got a response after retries
+            if response is None:
+                logger.error("Failed to get response after all retry attempts")
+                raise Exception("Failed to analyze reference image after retries")
 
             # Очищаем ответ от markdown форматирования
             result_text = response.text.strip()
@@ -242,16 +279,52 @@ class ImageAnalyzer:
             # Convert image to base64 for new SDK
             image_b64 = self._image_to_base64(image)
 
-            # Generate content with new SDK
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents={
-                    'parts': [
-                        {'text': prompt},
-                        {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
-                    ]
-                }
-            )
+            # Retry logic for handling temporary API overload (503, 429)
+            max_retries = 3
+            retry_delays = [2, 4, 8]  # Exponential backoff: 2s, 4s, 8s
+            response = None
+
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"Person analysis attempt {attempt + 1}/{max_retries}")
+
+                    # Generate content with new SDK
+                    response = self.client.models.generate_content(
+                        model=self.model_name,
+                        contents={
+                            'parts': [
+                                {'text': prompt},
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                            ]
+                        }
+                    )
+
+                    # If successful, break out of retry loop
+                    logger.info("Person analysis successful")
+                    break
+
+                except Exception as api_error:
+                    error_msg = str(api_error)
+
+                    # Check if it's a temporary error (503 overload, 429 rate limit)
+                    is_temporary = ('503' in error_msg or 'UNAVAILABLE' in error_msg or
+                                  '429' in error_msg or 'overloaded' in error_msg.lower() or
+                                  'rate limit' in error_msg.lower())
+
+                    if is_temporary and attempt < max_retries - 1:
+                        delay = retry_delays[attempt]
+                        logger.warning(f"Temporary API error (attempt {attempt + 1}/{max_retries}): {error_msg}")
+                        logger.info(f"Retrying in {delay} seconds...")
+                        time.sleep(delay)
+                    else:
+                        # Either not temporary error, or final attempt failed
+                        logger.error(f"API call failed: {error_msg}")
+                        raise
+
+            # Check if we got a response after retries
+            if response is None:
+                logger.error("Failed to get response after all retry attempts")
+                raise Exception("Failed to analyze person image after retries")
 
             # Очищаем ответ от markdown форматирования
             result_text = response.text.strip()
