@@ -4,9 +4,10 @@ Generates AI portraits based on detailed prompts
 """
 import logging
 import base64
+import io
 from typing import Optional
 from PIL import Image
-import google.generativeai as genai
+from google import genai
 import config
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,8 @@ class ImageGenerator:
     """Generates images using Google Gemini"""
 
     def __init__(self):
-        genai.configure(api_key=config.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(config.GOOGLE_IMAGE_MODEL)
+        self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
+        self.model_name = config.GOOGLE_IMAGE_MODEL
 
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
@@ -54,6 +55,20 @@ class ImageGenerator:
             image = rgb_image
 
         return image
+
+    def _image_to_base64(self, image: Image.Image) -> str:
+        """
+        Convert PIL Image to base64 string for new SDK
+
+        Args:
+            image: PIL Image object
+
+        Returns:
+            Base64 encoded string
+        """
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     def generate_portrait(
         self,
@@ -125,44 +140,48 @@ class ImageGenerator:
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
-            # Note: google-generativeai (deprecated SDK) does not support image_config
-            # Relying on explicit dimensions in prompt instead
-            generation_config = genai.types.GenerationConfig(
-                temperature=0.4,
-            )
+            # Convert person image to base64 for new SDK
+            image_b64 = self._image_to_base64(person_image)
 
-            # Generate content with image and prompt
-            # aspect_ratio is enforced through explicit pixel dimensions in prompt
-            response = self.model.generate_content(
-                [person_image, generation_prompt],
-                generation_config=generation_config,
-                request_options={"timeout": 180}
+            # Generate content with NEW SDK including imageConfig for aspect_ratio control
+            # This is the key feature that requires the new google-genai SDK
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents={
+                    'parts': [
+                        {'text': generation_prompt},
+                        {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                    ]
+                },
+                config={
+                    'image_config': {
+                        'aspect_ratio': aspect_ratio  # CRITICAL: aspect_ratio from reference style!
+                    }
+                }
             )
 
             # Extract generated image from response
-            if not response.candidates or len(response.candidates) == 0:
+            # Check if response has image data
+            if not hasattr(response, 'candidates') or not response.candidates:
                 logger.error("No candidates in response")
                 logger.error(f"Response: {response}")
                 return None
 
+            # Get first candidate
             candidate = response.candidates[0]
-            if not candidate.content or not candidate.content.parts:
-                logger.error("No content parts in response")
-                logger.error(f"Candidate: {candidate}")
-                return None
 
-            logger.info(f"Response has {len(candidate.content.parts)} parts")
+            # Check for inline_data in parts (image response)
+            if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                for i, part in enumerate(candidate.content.parts):
+                    logger.info(f"Part {i}: checking for inline_data")
+                    if hasattr(part, 'inline_data') and part.inline_data:
+                        logger.info("Successfully extracted generated image")
+                        # New SDK returns base64 string in inline_data.data
+                        image_data = base64.b64decode(part.inline_data.data)
+                        logger.info(f"Image data type: {type(image_data)}, length: {len(image_data)}")
+                        return image_data
 
-            # Find the image in response parts
-            for i, part in enumerate(candidate.content.parts):
-                logger.info(f"Part {i}: has inline_data={hasattr(part, 'inline_data')}")
-                if hasattr(part, 'inline_data') and part.inline_data:
-                    logger.info("Successfully extracted generated image")
-                    image_data = part.inline_data.data
-                    logger.info(f"Image data type: {type(image_data)}, length: {len(image_data) if image_data else 0}")
-                    return image_data
-
-            logger.error("No image data found in response parts")
+            logger.error("No image data found in response")
             return None
 
         except Exception as e:

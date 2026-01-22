@@ -5,9 +5,10 @@ Analyzes reference images and person photos to create detailed prompts
 import logging
 import json
 import io
+import base64
 from typing import Dict, Tuple
 from PIL import Image
-import google.generativeai as genai
+from google import genai
 import config
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,8 @@ class ImageAnalyzer:
     """Analyzes images using Google Gemini Vision API"""
 
     def __init__(self):
-        genai.configure(api_key=config.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(config.GOOGLE_VISION_MODEL)
+        self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
+        self.model_name = config.GOOGLE_VISION_MODEL
 
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
@@ -55,6 +56,20 @@ class ImageAnalyzer:
             image = rgb_image
 
         return image
+
+    def _image_to_base64(self, image: Image.Image) -> str:
+        """
+        Convert PIL Image to base64 string for new SDK
+
+        Args:
+            image: PIL Image object
+
+        Returns:
+            Base64 encoded string
+        """
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     def analyze_reference_image(self, image_path: str) -> Dict[str, str]:
         """
@@ -146,9 +161,18 @@ class ImageAnalyzer:
 }"""
 
         try:
-            response = self.model.generate_content(
-                [prompt, image],
-                request_options={"timeout": 120}
+            # Convert image to base64 for new SDK
+            image_b64 = self._image_to_base64(image)
+
+            # Generate content with new SDK
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents={
+                    'parts': [
+                        {'text': prompt},
+                        {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                    ]
+                }
             )
 
             # Очищаем ответ от markdown форматирования
@@ -209,9 +233,18 @@ class ImageAnalyzer:
 }"""
 
         try:
-            response = self.model.generate_content(
-                [prompt, image],
-                request_options={"timeout": 120}
+            # Convert image to base64 for new SDK
+            image_b64 = self._image_to_base64(image)
+
+            # Generate content with new SDK
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents={
+                    'parts': [
+                        {'text': prompt},
+                        {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                    ]
+                }
             )
 
             # Очищаем ответ от markdown форматирования
