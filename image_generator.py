@@ -98,23 +98,20 @@ class ImageGenerator:
             reference_image = self.compress_image(reference_image_path, max_size=1024)
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Clear prompt with emphasis on face replacement
-            # Put person first to emphasize identity preservation
-            generation_prompt = """CRITICAL: REPLACE the face in Image 2 with the face from Image 1.
+            # Natural prompt as if talking to an artist
+            # Using "reimagine" / "recreate" language instead of technical "REPLACE"
+            generation_prompt = """Create a portrait of the person from IMAGE 1, reimagined in the artistic style of IMAGE 2.
 
-IMAGE 1 (Person Photo - FACE IDENTITY):
-- This person's face is the PRIMARY REQUIREMENT
-- The generated portrait MUST show THIS EXACT PERSON
-- 100% facial recognition - preserve all facial features, proportions, unique characteristics
-- The person must be instantly recognizable
+IMAGE 1 - The Subject (This Specific Person):
+Look at this person carefully. This is who the portrait must depict. Their face, their features, their identity - this is the subject of your artwork. The person must be instantly recognizable.
 
-IMAGE 2 (Style Reference - ARTISTIC TEMPLATE):
-- Copy ONLY the artistic style: colors, lighting, technique, visual effects
-- Copy ONLY the composition: camera angle, framing, subject placement
-- Copy ONLY the pose: body position, posture, dynamics
-- DO NOT keep the face from this image - REPLACE it with face from Image 1
+IMAGE 2 - The Artistic Style (Visual Reference):
+This is your artistic inspiration. Study the colors, the lighting, the composition, the camera angle, the pose, the artistic technique. This shows you HOW to create the portrait - the visual language to use.
 
-TASK: Take Image 2 as artistic template, but REPLACE the face with the person from Image 1. The person from Image 1 must be 100% recognizable in the final result."""
+Your Task:
+Paint/draw/create a portrait of the person from IMAGE 1, but do it in the visual style, composition, and artistic approach shown in IMAGE 2. Think of it as: "What if the person from IMAGE 1 was the subject of the artwork in IMAGE 2?"
+
+The person from IMAGE 1 must be 100% recognizable in your result. Everything else - colors, style, technique, composition - comes from IMAGE 2."""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
