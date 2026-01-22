@@ -73,17 +73,17 @@ class ImageGenerator:
 
     def generate_portrait(
         self,
-        prompt: str,
+        reference_image_path: str,
         person_image_path: str,
         aspect_ratio: str = '1:1',
         number_of_images: int = 1
     ) -> Optional[bytes]:
         """
-        Generate AI portrait using Google Gemini with person's photo
+        Generate AI portrait using Google Gemini with two reference images
 
         Args:
-            prompt: Detailed prompt for image generation
-            person_image_path: Path to the person's photo
+            reference_image_path: Path to reference image (for style, composition, pose)
+            person_image_path: Path to the person's photo (for face identity only)
             aspect_ratio: Desired aspect ratio (1:1, 16:9, 9:16, etc.)
             number_of_images: Number of images to generate (default 1)
 
@@ -92,38 +92,31 @@ class ImageGenerator:
         """
         try:
             logger.info("Starting portrait generation with Google Gemini")
-            logger.info(f"Prompt length: {len(prompt)} chars")
             logger.info(f"Aspect ratio: {aspect_ratio}")
 
-            # Load and compress the person's image for faster processing
+            # Load and compress both images for faster processing
+            reference_image = self.compress_image(reference_image_path, max_size=1024)
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Map aspect_ratio to pixel dimensions for explicit sizing
-            aspect_map = {
-                "1:1": "1024x1024",
-                "16:9": "1024x576",
-                "9:16": "576x1024",
-                "4:3": "1024x768",
-                "3:4": "768x1024",
-                "3:2": "1024x683",
-                "2:3": "683x1024",
-            }
-            pixel_size = aspect_map.get(aspect_ratio, "1024x1024")
+            # Simple and clear prompt explaining the role of each image
+            generation_prompt = """IMAGE 1 (Reference - Style Source):
+- Copy the ARTISTIC STYLE: colors, lighting, technique, visual effects, color grading
+- Copy the COMPOSITION: camera angle, framing, subject placement
+- Copy the POSE: body position, posture, dynamics
 
-            # Simplified generation prompt with correct priority order: STYLE → COMPOSITION → FACE
-            generation_prompt = (
-                f"STYLE: {prompt}\n\n"
-                f"COMPOSITION: {aspect_ratio} format. "
-                f"Camera angle and pose from description above, NOT from attached photo.\n\n"
-                f"FACE: Use attached photo for facial identity only. "
-                f"Person must be 100% recognizable."
-            )
+IMAGE 2 (Person - Identity Source):
+- Use FACE IDENTITY ONLY from this person
+- Person must be 100% recognizable
+- DO NOT copy pose or framing from this image
+
+TASK: Create a portrait combining the style, composition and pose from Image 1 with the face identity from Image 2."""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
-            # Convert person image to base64 for new SDK
-            image_b64 = self._image_to_base64(person_image)
+            # Convert both images to base64 for new SDK
+            reference_b64 = self._image_to_base64(reference_image)
+            person_b64 = self._image_to_base64(person_image)
 
             # Retry logic for handling temporary API overload (503, 429)
             max_retries = 3
@@ -135,13 +128,14 @@ class ImageGenerator:
                     logger.info(f"API call attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with NEW SDK including imageConfig for aspect_ratio control
-                    # This is the key feature that requires the new google-genai SDK
+                    # Pass TWO images: reference (style) and person (identity)
                     response = self.client.models.generate_content(
                         model=self.model_name,
                         contents={
                             'parts': [
                                 {'text': generation_prompt},
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': reference_b64}},  # Image 1: style reference
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': person_b64}}      # Image 2: face identity
                             ]
                         },
                         config={

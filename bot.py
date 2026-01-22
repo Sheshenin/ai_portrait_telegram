@@ -179,31 +179,21 @@ class AIPortraitBot:
 
             logger.info("Starting image analysis...")
 
-            # Step 1: Analyze reference image
-            logger.info("Analyzing reference image...")
+            # Step 1: Analyze reference image (only for aspect_ratio)
+            logger.info("Analyzing reference image for aspect ratio...")
             reference_data = self.analyzer.analyze_reference_image(reference_path)
+            aspect_ratio = reference_data.get('aspect_ratio', '1:1')
 
-            # Step 2: Analyze person image
-            logger.info("Analyzing person image...")
-            person_data = self.analyzer.analyze_person_image(person_path)
-
-            # Step 3: Merge prompts
-            logger.info("Merging prompts...")
-            final_prompt, aspect_ratio = self.analyzer.merge_prompts(
-                reference_data,
-                person_data
-            )
-
-            logger.info(f"Final prompt length: {len(final_prompt)} chars")
             logger.info(f"Aspect ratio: {aspect_ratio}")
 
             # Send progress update
             await update.message.reply_text(config.MESSAGES['processing'])
 
-            # Step 4: Generate portrait
+            # Step 2: Generate portrait with 2 images
             logger.info("Generating portrait with Google Gemini...")
+            logger.info("Passing reference image for style and person image for identity")
             image_data = self.generator.generate_portrait(
-                prompt=final_prompt,
+                reference_image_path=reference_path,
                 person_image_path=person_path,
                 aspect_ratio=aspect_ratio
             )
