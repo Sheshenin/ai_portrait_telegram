@@ -91,8 +91,13 @@ class ImageAnalyzer:
 
 ВАЖНО: Опиши изображение так, чтобы можно было точно воссоздать стиль и композицию.
 
-1. ОБЩАЯ СТИЛИСТИКА:
-   - Определи тип изображения (фотография/иллюстрация/рисунок/3D-рендер/другое)
+1. ОБЩАЯ СТИЛИСТИКА (КРИТИЧЕСКИ ВАЖНО):
+   - Определи тип изображения (фотография/векторная графика/рисунок/3D-рендер/другое)
+   - Если ВЕКТОРНАЯ ГРАФИКА: опиши детально:
+     * Стиль линий: чистые контуры, толщина линий, черные обводки, цветные контуры
+     * Заливка: плоские цвета, градиенты, без текстур, с паттернами
+     * Уровень детализации: минималистичный, детальный, фотореалистичный вектор
+     * Характерные черты: flat design, линейная графика, силуэты
    - Если фото: укажи тип камеры, объектив, выдержку, диафрагму, ISO (если можно определить по виду)
    - Если рисунок: тип краски/карандаша, текстуру, технику, характерные штрихи
    - Если иллюстрация: стиль (реализм/мультяшный/комикс/аниме/другое)
@@ -111,8 +116,9 @@ class ImageAnalyzer:
      * Ростовой: в полный рост
      * Деталь: только лицо крупным планом
    - Угол камеры (точно!):
-     * Высота: прямо на уровне глаз / сверху (какой угол) / снизу (какой угол)
-     * Горизонталь: фронтально / три четверти / профиль / со спины
+     * Высота: прямо на уровне глаз / сверху (указать ~30°/~45°/~60°) / снизу (указать угол)
+     * Горизонталь: фронтально (прямо 0°) / три четверти (~30-45°) / профиль (90°) / со спины
+     * Перспектива: плоская фронтальная / угловая с глубиной / диагональная композиция
 
 3. СУБЪЕКТ (ЕСЛИ ЕСТЬ ЧЕЛОВЕК):
    - Поза и положение тела (МАКСИМАЛЬНО ДЕТАЛЬНО):
@@ -296,45 +302,14 @@ class ImageAnalyzer:
                 else:
                     gender_swap_note += "If the reference has feminine clothing, replace it with appropriate masculine clothing while maintaining the style."
 
-        # Создаем финальный промпт с четким разделением: лицо из фото, всё остальное из описания
-        final_prompt = f"""Create a portrait image with the following specifications:
+        # Создаем финальный промпт: короткий, но информативный, с правильными приоритетами
+        final_prompt = f"""STYLE: {reference_data.get('image_type', 'portrait')} - {reference_data.get('technical_details', 'professional style')}. {reference_data.get('color_palette', 'natural colors')}. {reference_data.get('lighting', 'natural lighting')}. {reference_data.get('background', 'neutral background')}. {reference_data.get('mood', 'neutral mood')}.
 
-IDENTITY REFERENCE (from attached photo):
-- Use ONLY the face from the photo: {person_data.get('gender', 'adult')}, ~{person_data.get('age', 'adult')} years old
-- Hair: {person_data.get('hair_color', 'natural')} color, {person_data.get('hair_length', 'medium')} length, {person_data.get('hair_style', 'natural style')}
-- CRITICAL: The attached photo is ONLY for facial identity - do NOT copy pose or angle from it
+COMPOSITION: {reference_data.get('shot_scale', 'portrait')} shot. {reference_data.get('camera_angle', 'eye level')}. {reference_data.get('subject_placement', 'centered')}.
 
-OUTPUT FORMAT (from reference style image):
-- ASPECT RATIO: {reference_data.get('aspect_ratio', '1:1')} - CRITICAL: use this ratio, NOT the ratio from person's photo
+POSE: {reference_data.get('subject_pose', 'natural pose')}. {reference_data.get('subject_dynamics', 'static')}. {reference_data.get('facial_expression', 'neutral expression')}. {reference_data.get('clothing', 'casual attire')}{gender_swap_note}.
 
-COMPOSITION (CRITICAL - follow exactly, ignore photo's composition):
-- Subject placement: {reference_data.get('subject_placement', 'centered')}
-- Shot scale: {reference_data.get('shot_scale', 'portrait')}
-- Camera angle: {reference_data.get('camera_angle', 'straight on at eye level')}
-- Overall composition: {reference_data.get('composition', 'centered portrait')}
-
-POSE AND DYNAMICS (use description, NOT photo):
-- Body pose: {reference_data.get('subject_pose', 'natural pose')}
-- Dynamics: {reference_data.get('subject_dynamics', 'static pose')}
-- Facial expression: {reference_data.get('facial_expression', 'neutral')}
-- Clothing: {reference_data.get('clothing', 'casual attire')}{gender_swap_note}
-
-STYLE AND TECHNIQUE:
-- Image type: {reference_data.get('image_type', 'portrait')}
-- Technical style: {reference_data.get('technical_details', 'professional portrait')}
-- Background: {reference_data.get('background', 'neutral background')}
-- Lighting: {reference_data.get('lighting', 'natural lighting')}
-- Color palette: {reference_data.get('color_palette', 'natural colors')}
-- Mood: {reference_data.get('mood', 'neutral')}
-
-CRITICAL EXECUTION RULES:
-1. ASPECT RATIO: Output must be {reference_data.get('aspect_ratio', '1:1')} - from reference style, NOT from person's photo
-2. FACE IDENTITY: Use exact face from photo (100% recognizable)
-3. COMPOSITION: Follow the composition/placement/angle from description, NOT from photo
-4. POSE: Use pose from description, even if photo shows different pose
-5. DYNAMICS: If description mentions movement (flying hair, etc.), show it regardless of photo
-6. The photo is a face reference ONLY - everything else comes from this prompt
-"""
+PERSON: {person_data.get('gender', 'adult')}, ~{person_data.get('age', 'adult')} years. Hair: {person_data.get('hair_color', 'natural')} {person_data.get('hair_length', 'medium')} {person_data.get('hair_style', 'natural style')}."""
 
         aspect_ratio = reference_data.get('aspect_ratio', '1:1')
 

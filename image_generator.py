@@ -109,32 +109,13 @@ class ImageGenerator:
             }
             pixel_size = aspect_map.get(aspect_ratio, "1024x1024")
 
-            # Create the generation prompt with clear separation: face from photo, pose from description
+            # Simplified generation prompt with correct priority order: STYLE → COMPOSITION → FACE
             generation_prompt = (
-                f"CRITICAL INSTRUCTIONS:\n\n"
-                f"OUTPUT FORMAT (MANDATORY):\n"
-                f"   - Generate image with EXACT aspect ratio: {aspect_ratio}\n"
-                f"   - Output dimensions MUST be: {pixel_size} pixels\n"
-                f"   - This aspect ratio comes from reference style image, NOT from person's photo\n"
-                f"   - DO NOT use aspect ratio or dimensions from the attached photograph\n"
-                f"   - The attached photo is {person_image.width}x{person_image.height} - IGNORE these dimensions\n\n"
-                f"1. IDENTITY REFERENCE (Use attached photograph):\n"
-                f"   - The attached photograph is ONLY an identity reference for facial likeness\n"
-                f"   - USE ONLY THE FACE: facial features, proportions, unique characteristics\n"
-                f"   - PRESERVE 100% facial recognition - the person MUST be recognizable\n"
-                f"   - DO NOT use the pose, angle, or framing from the photograph\n"
-                f"   - Think of it as: 'this person's face' transplanted into a different scene\n\n"
-                f"2. COMPOSITION & POSE (Use prompt description):\n"
-                f"   - IGNORE the frontal pose from the photograph\n"
-                f"   - Follow EXACTLY the composition, pose, angle, and framing from the prompt below\n"
-                f"   - If prompt says 'sitting on knees', do NOT use frontal standing from photo\n"
-                f"   - If prompt says 'shot from above', do NOT use straight angle from photo\n"
-                f"   - Camera angle, subject placement, and dynamics come from PROMPT, not photo\n\n"
-                f"3. ARTISTIC STYLE:\n"
-                f"   - Apply the medium and style as described in the prompt\n"
-                f"   - If it's a photo, show physical print texture\n"
-                f"   - If it's art, show canvas/paper texture and brushwork\n\n"
-                f"EXECUTE PROMPT: {prompt}"
+                f"STYLE: {prompt}\n\n"
+                f"COMPOSITION: {aspect_ratio} format. "
+                f"Camera angle and pose from description above, NOT from attached photo.\n\n"
+                f"FACE: Use attached photo for facial identity only. "
+                f"Person must be 100% recognizable."
             )
 
             logger.info("Calling Gemini API for image generation...")
