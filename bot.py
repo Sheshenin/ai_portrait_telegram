@@ -202,9 +202,10 @@ class AIPortraitBot:
             await update.message.reply_text(config.MESSAGES['processing'])
 
             # Step 4: Generate portrait
-            logger.info("Generating portrait with Google Imagen...")
+            logger.info("Generating portrait with Google Gemini...")
             image_data = self.generator.generate_portrait(
                 prompt=final_prompt,
+                person_image_path=person_path,
                 aspect_ratio=aspect_ratio
             )
 

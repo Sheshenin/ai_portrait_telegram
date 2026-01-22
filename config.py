@@ -10,10 +10,10 @@ load_dotenv()
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
-# Google AI Configuration (for Gemini Vision and Imagen)
+# Google AI Configuration (for Gemini Vision and Image Generation)
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 GOOGLE_VISION_MODEL = os.getenv('GOOGLE_VISION_MODEL', 'gemini-2.5-flash-image')
-GOOGLE_IMAGE_MODEL = os.getenv('GOOGLE_IMAGE_MODEL', 'imagen-3.0-generate-001')
+GOOGLE_IMAGE_MODEL = os.getenv('GOOGLE_IMAGE_MODEL', 'gemini-2.5-flash-image')
 
 # Validate required configuration
 if not TELEGRAM_BOT_TOKEN:
