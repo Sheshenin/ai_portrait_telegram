@@ -179,19 +179,19 @@ class AIPortraitBot:
 
             logger.info("Starting 3-stage processing...")
 
-            # Step 1: Analyze reference image for complete specification
-            logger.info("Step 1: Analyzing reference image for medium, style, and environment...")
+            # Step 1: Analyze reference image for style specification
+            logger.info("Step 1: Deconstructing style DNA from reference...")
             reference_data = self.analyzer.analyze_reference_image(reference_path)
+            base_prompt = reference_data.get('specification', '')
             aspect_ratio = reference_data.get('aspect_ratio', '1:1')
 
-            logger.info(f"Medium: {reference_data.get('medium_specification', '')[:50]}...")
-            logger.info(f"Environment: {reference_data.get('environment', '')[:50]}...")
+            logger.info(f"Base prompt: {base_prompt[:100]}...")
             logger.info(f"Aspect ratio: {aspect_ratio}")
 
-            # Step 2: Refine prompt with person's photo
-            logger.info("Step 2: Refining prompt with person's identity...")
+            # Step 2: Refine prompt with person's identity
+            logger.info("Step 2: Mapping identity and harmonizing with medium...")
             refined_prompt = self.analyzer.refine_with_person(
-                reference_data=reference_data,
+                base_prompt=base_prompt,
                 person_image_path=person_path
             )
 

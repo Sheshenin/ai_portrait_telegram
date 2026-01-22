@@ -98,33 +98,8 @@ class ImageGenerator:
             # Load and compress person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Final generation prompt with emphasis on medium and color preservation
-            generation_prompt = f"""MASTERPIECE RENDERING.
-
-CRITICAL REQUIREMENTS:
-
-1. MEDIUM INTEGRITY (ABSOLUTELY CRITICAL):
-   - The attached photo is ONLY for facial identity - do NOT copy its photographic style
-   - Identify the MEDIUM from the prompt below (photograph/painting/sketch/illustration)
-   - If prompt says PHOTOGRAPH: Create photorealistic image with realistic skin textures, pores, lens effects
-   - If prompt says PAINTING/ILLUSTRATION: Create actual painted/illustrated artwork with VISIBLE BRUSHSTROKES on the face and body. The person should look PAINTED, not like a photo with art filter applied. Show canvas texture, brush marks, paint texture.
-   - If prompt says SKETCH/DRAWING: Create actual drawn artwork with VISIBLE PENCIL/CHARCOAL MARKS, hatching, paper texture on the face and body. NOT a photo converted to sketch.
-   - WRONG: Taking a photo and applying filters to make it look painted
-   - RIGHT: Actually painting/drawing the person in that artistic medium
-
-2. LIKENESS IS MANDATORY:
-   - The person from the attached photo must be 100% recognizable
-   - Exact facial features, proportions, age, ethnicity
-
-3. COLOR GRADING PRESERVATION (CRITICAL):
-   - NO AUTO WHITE BALANCE CORRECTION - preserve exact color temperature from prompt
-   - NO AUTO EXPOSURE CORRECTION - preserve brightness levels as specified
-   - If prompt specifies WARM tones (orange, golden, amber) - output MUST be warm, do NOT correct to neutral/cool
-   - If prompt specifies COOL tones (blue, cyan) - output MUST be cool, do NOT warm it up
-   - Preserve exact color grading, saturation, and contrast as specified in prompt
-   - Think: if it's an orange sunset scene, the ENTIRE image must have that orange/amber color cast
-
-EXECUTE PROMPT: {refined_prompt}"""
+            # Short generation prompt based on working app
+            generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas. LIKENESS IS MANDATORY. EXECUTE PROMPT: {refined_prompt}"""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
