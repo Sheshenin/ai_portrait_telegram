@@ -85,6 +85,10 @@ class ImageGenerator:
             # Create the generation prompt with clear separation: face from photo, pose from description
             generation_prompt = (
                 f"CRITICAL INSTRUCTIONS:\n\n"
+                f"OUTPUT FORMAT:\n"
+                f"   - Generate image with aspect ratio: {aspect_ratio}\n"
+                f"   - This aspect ratio comes from reference style image, NOT from person's photo\n"
+                f"   - DO NOT use aspect ratio from the attached photograph\n\n"
                 f"1. IDENTITY REFERENCE (Use attached photograph):\n"
                 f"   - The attached photograph is ONLY an identity reference for facial likeness\n"
                 f"   - USE ONLY THE FACE: facial features, proportions, unique characteristics\n"
@@ -105,11 +109,18 @@ class ImageGenerator:
             )
 
             logger.info("Calling Gemini API for image generation...")
+            logger.info(f"Setting aspect ratio to: {aspect_ratio}")
+
+            # Prepare generation config with aspect ratio from reference image
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.4,
+            )
 
             # Generate content with image and prompt
-            # Note: aspect_ratio is handled in the prompt, Gemini will return image in response
+            # aspect_ratio from reference image determines output format
             response = self.model.generate_content(
                 [person_image, generation_prompt],
+                generation_config=generation_config,
                 request_options={"timeout": 180}
             )
 

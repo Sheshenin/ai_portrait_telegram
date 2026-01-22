@@ -271,8 +271,10 @@ IDENTITY REFERENCE (from attached photo):
 - Hair: {person_data.get('hair_color', 'natural')} color, {person_data.get('hair_length', 'medium')} length, {person_data.get('hair_style', 'natural style')}
 - CRITICAL: The attached photo is ONLY for facial identity - do NOT copy pose or angle from it
 
+OUTPUT FORMAT (from reference style image):
+- ASPECT RATIO: {reference_data.get('aspect_ratio', '1:1')} - CRITICAL: use this ratio, NOT the ratio from person's photo
+
 COMPOSITION (CRITICAL - follow exactly, ignore photo's composition):
-- Aspect ratio: {reference_data.get('aspect_ratio', '1:1')}
 - Subject placement: {reference_data.get('subject_placement', 'centered')}
 - Shot scale: {reference_data.get('shot_scale', 'portrait')}
 - Camera angle: {reference_data.get('camera_angle', 'straight on at eye level')}
@@ -293,11 +295,12 @@ STYLE AND TECHNIQUE:
 - Mood: {reference_data.get('mood', 'neutral')}
 
 CRITICAL EXECUTION RULES:
-1. FACE IDENTITY: Use exact face from photo (100% recognizable)
-2. COMPOSITION: Follow the composition/placement/angle from description, NOT from photo
-3. POSE: Use pose from description, even if photo shows different pose
-4. DYNAMICS: If description mentions movement (flying hair, etc.), show it regardless of photo
-5. The photo is a face reference ONLY - everything else comes from this prompt
+1. ASPECT RATIO: Output must be {reference_data.get('aspect_ratio', '1:1')} - from reference style, NOT from person's photo
+2. FACE IDENTITY: Use exact face from photo (100% recognizable)
+3. COMPOSITION: Follow the composition/placement/angle from description, NOT from photo
+4. POSE: Use pose from description, even if photo shows different pose
+5. DYNAMICS: If description mentions movement (flying hair, etc.), show it regardless of photo
+6. The photo is a face reference ONLY - everything else comes from this prompt
 """
 
         aspect_ratio = reference_data.get('aspect_ratio', '1:1')
