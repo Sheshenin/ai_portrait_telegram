@@ -6,6 +6,7 @@ import logging
 import os
 import tempfile
 from typing import Dict
+from threading import Thread
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -259,9 +260,34 @@ class AIPortraitBot:
                     del user_data[key]
 
 
+def start_health_check_server():
+    """Start a simple HTTP server for health checks (required by Render)"""
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    class HealthCheckHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK - AI Portrait Bot is running')
+
+        def log_message(self, format, *args):
+            # Suppress HTTP server logs
+            pass
+
+    port = int(os.getenv('PORT', 10000))
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    logger.info(f"Health check server started on port {port}")
+    server.serve_forever()
+
+
 def main():
     """Start the bot"""
     logger.info("Starting AI Portrait Telegram Bot...")
+
+    # Start health check server in background thread (for Render)
+    health_thread = Thread(target=start_health_check_server, daemon=True)
+    health_thread.start()
 
     # Initialize bot
     bot = AIPortraitBot()
