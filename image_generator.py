@@ -161,6 +161,9 @@ class ImageGenerator:
             )
 
             # Extract generated image from response
+            logger.info(f"Response type: {type(response)}")
+            logger.info(f"Response has candidates: {hasattr(response, 'candidates')}")
+
             # Check if response has image data
             if not hasattr(response, 'candidates') or not response.candidates:
                 logger.error("No candidates in response")
@@ -169,17 +172,38 @@ class ImageGenerator:
 
             # Get first candidate
             candidate = response.candidates[0]
+            logger.info(f"Candidate type: {type(candidate)}")
+            logger.info(f"Candidate has content: {hasattr(candidate, 'content')}")
 
             # Check for inline_data in parts (image response)
-            if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
-                for i, part in enumerate(candidate.content.parts):
-                    logger.info(f"Part {i}: checking for inline_data")
-                    if hasattr(part, 'inline_data') and part.inline_data:
-                        logger.info("Successfully extracted generated image")
-                        # New SDK returns base64 string in inline_data.data
-                        image_data = base64.b64decode(part.inline_data.data)
-                        logger.info(f"Image data type: {type(image_data)}, length: {len(image_data)}")
-                        return image_data
+            if hasattr(candidate, 'content') and candidate.content:
+                logger.info(f"Content type: {type(candidate.content)}")
+                logger.info(f"Content has parts: {hasattr(candidate.content, 'parts')}")
+
+                if hasattr(candidate.content, 'parts'):
+                    logger.info(f"Number of parts: {len(candidate.content.parts)}")
+
+                    for i, part in enumerate(candidate.content.parts):
+                        logger.info(f"Part {i} type: {type(part)}")
+                        logger.info(f"Part {i} has inline_data: {hasattr(part, 'inline_data')}")
+
+                        if hasattr(part, 'inline_data') and part.inline_data:
+                            logger.info(f"inline_data type: {type(part.inline_data)}")
+                            logger.info(f"inline_data has data: {hasattr(part.inline_data, 'data')}")
+
+                            # New SDK returns data - check if it's bytes or base64 string
+                            image_data = part.inline_data.data
+                            logger.info(f"Raw image_data type before processing: {type(image_data)}")
+
+                            # If it's a string, decode from base64; if bytes, use directly
+                            if isinstance(image_data, str):
+                                logger.info("Image data is string, decoding from base64")
+                                image_data = base64.b64decode(image_data)
+                            else:
+                                logger.info("Image data is already bytes")
+
+                            logger.info(f"Final image data type: {type(image_data)}, length: {len(image_data)}")
+                            return image_data
 
             logger.error("No image data found in response")
             return None
