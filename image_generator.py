@@ -82,18 +82,25 @@ class ImageGenerator:
             # Load and compress the person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Create the generation prompt with CRITICAL focus on facial likeness
+            # Create the generation prompt with clear separation: face from photo, pose from description
             generation_prompt = (
                 f"CRITICAL INSTRUCTIONS:\n\n"
-                f"1. FACIAL LIKENESS (TOP PRIORITY):\n"
-                f"   - USE THE EXACT FACE from the provided photograph\n"
+                f"1. IDENTITY REFERENCE (Use attached photograph):\n"
+                f"   - The attached photograph is ONLY an identity reference for facial likeness\n"
+                f"   - USE ONLY THE FACE: facial features, proportions, unique characteristics\n"
                 f"   - PRESERVE 100% facial recognition - the person MUST be recognizable\n"
-                f"   - DO NOT modify facial features, proportions, or unique characteristics\n"
-                f"   - Only apply the artistic style, NOT change the face\n\n"
-                f"2. MEDIUM & STYLE:\n"
-                f"   - Respect the MEDIUM identified in the prompt\n"
-                f"   - If it's a photo, make it look like a physical print\n"
-                f"   - If it's art, show the physical texture of paper/canvas\n\n"
+                f"   - DO NOT use the pose, angle, or framing from the photograph\n"
+                f"   - Think of it as: 'this person's face' transplanted into a different scene\n\n"
+                f"2. COMPOSITION & POSE (Use prompt description):\n"
+                f"   - IGNORE the frontal pose from the photograph\n"
+                f"   - Follow EXACTLY the composition, pose, angle, and framing from the prompt below\n"
+                f"   - If prompt says 'sitting on knees', do NOT use frontal standing from photo\n"
+                f"   - If prompt says 'shot from above', do NOT use straight angle from photo\n"
+                f"   - Camera angle, subject placement, and dynamics come from PROMPT, not photo\n\n"
+                f"3. ARTISTIC STYLE:\n"
+                f"   - Apply the medium and style as described in the prompt\n"
+                f"   - If it's a photo, show physical print texture\n"
+                f"   - If it's art, show canvas/paper texture and brushwork\n\n"
                 f"EXECUTE PROMPT: {prompt}"
             )
 
