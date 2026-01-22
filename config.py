@@ -12,7 +12,7 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Google AI Configuration (for Gemini Vision and Imagen)
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-GOOGLE_VISION_MODEL = os.getenv('GOOGLE_VISION_MODEL', 'gemini-1.5-flash-latest')
+GOOGLE_VISION_MODEL = os.getenv('GOOGLE_VISION_MODEL', 'gemini-1.5-pro')
 GOOGLE_IMAGE_MODEL = os.getenv('GOOGLE_IMAGE_MODEL', 'imagen-3.0-generate-001')
 
 # Validate required configuration
