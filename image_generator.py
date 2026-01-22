@@ -17,11 +17,7 @@ class ImageGenerator:
 
     def __init__(self):
         genai.configure(api_key=config.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(
-            config.GOOGLE_IMAGE_MODEL,
-            # Increase timeout for image generation
-            request_options={"timeout": 180}
-        )
+        self.model = genai.GenerativeModel(config.GOOGLE_IMAGE_MODEL)
 
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
@@ -99,7 +95,8 @@ class ImageGenerator:
             # Generate content with image and prompt
             # Note: aspect_ratio is handled in the prompt, Gemini will return image in response
             response = self.model.generate_content(
-                [person_image, generation_prompt]
+                [person_image, generation_prompt],
+                request_options={"timeout": 180}
             )
 
             # Extract generated image from response

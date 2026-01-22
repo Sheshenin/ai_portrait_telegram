@@ -18,11 +18,7 @@ class ImageAnalyzer:
 
     def __init__(self):
         genai.configure(api_key=config.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(
-            config.GOOGLE_VISION_MODEL,
-            # Increase timeout for large images
-            request_options={"timeout": 120}
-        )
+        self.model = genai.GenerativeModel(config.GOOGLE_VISION_MODEL)
 
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
@@ -127,7 +123,10 @@ class ImageAnalyzer:
 }"""
 
         try:
-            response = self.model.generate_content([prompt, image])
+            response = self.model.generate_content(
+                [prompt, image],
+                request_options={"timeout": 120}
+            )
 
             # Очищаем ответ от markdown форматирования
             result_text = response.text.strip()
@@ -215,7 +214,10 @@ class ImageAnalyzer:
 }"""
 
         try:
-            response = self.model.generate_content([prompt, image])
+            response = self.model.generate_content(
+                [prompt, image],
+                request_options={"timeout": 120}
+            )
 
             # Очищаем ответ от markdown форматирования
             result_text = response.text.strip()
