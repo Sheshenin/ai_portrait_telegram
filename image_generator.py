@@ -73,17 +73,17 @@ class ImageGenerator:
 
     def generate_portrait(
         self,
-        reference_image_path: str,
+        refined_prompt: str,
         person_image_path: str,
         aspect_ratio: str = '1:1',
         number_of_images: int = 1
     ) -> Optional[bytes]:
         """
-        Generate AI portrait using Google Gemini with two reference images
+        Generate AI portrait using Google Gemini with refined prompt and person's photo
 
         Args:
-            reference_image_path: Path to reference image (for style, composition, pose)
-            person_image_path: Path to the person's photo (for face identity only)
+            refined_prompt: Refined generation prompt combining style and person
+            person_image_path: Path to the person's photo (for face identity)
             aspect_ratio: Desired aspect ratio (1:1, 16:9, 9:16, etc.)
             number_of_images: Number of images to generate (default 1)
 
@@ -92,34 +92,20 @@ class ImageGenerator:
         """
         try:
             logger.info("Starting portrait generation with Google Gemini")
+            logger.info(f"Prompt length: {len(refined_prompt)} chars")
             logger.info(f"Aspect ratio: {aspect_ratio}")
 
-            # Load and compress both images for faster processing
-            reference_image = self.compress_image(reference_image_path, max_size=1024)
+            # Load and compress person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Natural prompt as if talking to an artist
-            # Using "reimagine" / "recreate" language instead of technical "REPLACE"
-            generation_prompt = """Create a portrait of the person from IMAGE 1, reimagined in the artistic style of IMAGE 2.
-
-IMAGE 1 - The Subject (This Specific Person):
-Look at this person carefully. This is who the portrait must depict. Their face, their features, their identity - this is the subject of your artwork. The person must be instantly recognizable.
-
-IMAGE 2 - The Artistic Style (Visual Reference):
-This is your artistic inspiration. Study the colors, the lighting, the composition, the camera angle, the pose, the artistic technique. This shows you HOW to create the portrait - the visual language to use.
-
-Your Task:
-Paint/draw/create a portrait of the person from IMAGE 1, but do it in the visual style, composition, and artistic approach shown in IMAGE 2. Think of it as: "What if the person from IMAGE 1 was the subject of the artwork in IMAGE 2?"
-
-The person from IMAGE 1 must be 100% recognizable in your result. Everything else - colors, style, technique, composition - comes from IMAGE 2."""
+            # Final generation prompt based on working app
+            generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas. LIKENESS IS MANDATORY. EXECUTE PROMPT: {refined_prompt}"""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")
 
-            # Convert both images to base64 for new SDK
-            # IMPORTANT: Put person FIRST to emphasize face identity
+            # Convert person image to base64 for new SDK
             person_b64 = self._image_to_base64(person_image)
-            reference_b64 = self._image_to_base64(reference_image)
 
             # Retry logic for handling temporary API overload (503, 429)
             max_retries = 3
@@ -131,14 +117,13 @@ The person from IMAGE 1 must be 100% recognizable in your result. Everything els
                     logger.info(f"API call attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with NEW SDK including imageConfig for aspect_ratio control
-                    # Pass TWO images: person FIRST (identity priority), then reference (style template)
+                    # Pass ONE image (person) + refined text prompt (style already described in text)
                     response = self.client.models.generate_content(
                         model=self.model_name,
                         contents={
                             'parts': [
-                                {'text': generation_prompt},
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': person_b64}},      # Image 1: face identity (PRIMARY)
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': reference_b64}}   # Image 2: style template
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': person_b64}},  # Person photo for identity
+                                {'text': generation_prompt}  # Text prompt with style specification
                             ]
                         },
                         config={

@@ -87,84 +87,30 @@ class ImageAnalyzer:
         # Загружаем и сжимаем изображение для ускорения обработки
         image = self.compress_image(image_path, max_size=1024)
 
-        # Детальный промпт для анализа образца согласно алгоритму
-        prompt = """Проанализируй это изображение максимально подробно для создания AI-портрета.
+        # Детальный промпт для анализа медиума и стиля (как в рабочем приложении)
+        prompt = """Perform a two-stage forensic analysis of this image's medium and style:
 
-ВАЖНО: Опиши изображение так, чтобы можно было точно воссоздать стиль и композицию.
+STAGE 1: MEDIUM CLASSIFICATION
+Identify the exact medium: Is it a high-fidelity Photograph, an Oil/Acrylic Painting, a Watercolor, a Pencil/Charcoal Sketch, an Etching, or Digital Art?
 
-1. ОБЩАЯ СТИЛИСТИКА (КРИТИЧЕСКИ ВАЖНО):
-   - Определи тип изображения (фотография/векторная графика/рисунок/3D-рендер/другое)
-   - Если ВЕКТОРНАЯ ГРАФИКА: опиши детально:
-     * Стиль линий: чистые контуры, толщина линий, черные обводки, цветные контуры
-     * Заливка: плоские цвета, градиенты, без текстур, с паттернами
-     * Уровень детализации: минималистичный, детальный, фотореалистичный вектор
-     * Характерные черты: flat design, линейная графика, силуэты
-   - Если фото: укажи тип камеры, объектив, выдержку, диафрагму, ISO (если можно определить по виду)
-   - Если рисунок: тип краски/карандаша, текстуру, технику, характерные штрихи
-   - Если иллюстрация: стиль (реализм/мультяшный/комикс/аниме/другое)
+STAGE 2: MEDIUM-SPECIFIC TECHNICAL SPECIFICATION
+- IF PHOTOGRAPHY: Describe focal length, aperture (depth of field), film stock grain, lighting setup (e.g., Rembrandt, butterfly), and physical print texture (glossy, matte, silver gelatin).
+- IF PAINTING/WATERCOLOR: Describe brushwork scale, impasto thickness, canvas weave density, paper "tooth" (cold-press texture), pigment bleeding, and water stains.
+- IF SKETCH: Describe graphite/charcoal grit, smudge marks, eraser ghosts, hatching density, and paper fibers.
+- IF DIGITAL: Identify the specific software aesthetic (brush engines used).
 
-2. ФОРМАТ И КОМПОЗИЦИЯ (КРИТИЧЕСКИ ВАЖНО):
-   - Соотношение сторон (1:1, 16:9, 9:16, 4:3, 3:4, другое)
-   - Ориентация (портретная/альбомная/квадратная)
-   - Расположение субъекта в кадре (точно!):
-     * По горизонтали: центр, левая треть, правая треть, золотое сечение слева/справа
-     * По вертикали: центр, верхняя треть, нижняя треть, золотое сечение сверху/снизу
-     * Пример: "объект на линии золотого сечения слева, занимает 2/3 площади слева"
-   - Крупность плана (детально!):
-     * Портрет: от подбородка до макушки, от шеи до макушки
-     * Поясной: от талии и выше
-     * По колено, по бедра
-     * Ростовой: в полный рост
-     * Деталь: только лицо крупным планом
-   - Угол камеры (точно!):
-     * Высота: прямо на уровне глаз / сверху (указать ~30°/~45°/~60°) / снизу (указать угол)
-     * Горизонталь: фронтально (прямо 0°) / три четверти (~30-45°) / профиль (90°) / со спины
-     * Перспектива: плоская фронтальная / угловая с глубиной / диагональная композиция
+STAGE 3: COMPOSITION & CHARACTER
+1. POSE & PLACEMENT: Exact posture and placement in frame.
+2. GENDER & CLOTHING: Identify the subject's gender and describe the outfit's material and style.
+3. ENVIRONMENT: Background details.
+4. ASPECT RATIO: Specify the exact aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
 
-3. СУБЪЕКТ (ЕСЛИ ЕСТЬ ЧЕЛОВЕК):
-   - Поза и положение тела (МАКСИМАЛЬНО ДЕТАЛЬНО):
-     * Точное положение: сидит/стоит/лежит/в движении
-     * Положение рук, ног, головы
-     * Поворот корпуса, наклон головы
-   - Динамика и движение:
-     * Статичная поза или в движении
-     * Волосы развеваются / статичные
-     * Одежда в движении / спокойная
-   - Выражение лица и эмоции
-   - Одежда и аксессуары (детально!)
-   - Прическа и ее стиль
-   - Освещение на лице
+Output a "Medium-Locked Technical Specification" that mandates these exact physical properties. Also return the aspect ratio.
 
-4. ОКРУЖЕНИЕ И ДЕТАЛИ:
-   - Фон (детальное описание)
-   - Окружающие предметы и элементы
-   - Освещение (мягкое/жесткое, направление света, цветовая температура)
-   - Цветовая палитра (теплая/холодная, насыщенность, контраст)
-
-5. НАСТРОЕНИЕ И АТМОСФЕРА:
-   - Общее настроение изображения
-   - Эмоциональный посыл
-   - Художественные эффекты
-
-Ответ дай СТРОГО в формате JSON (без дополнительного текста, только JSON):
+IMPORTANT: Return response in JSON format:
 {
-  "image_type": "тип изображения",
-  "technical_details": "технические детали стиля",
-  "aspect_ratio": "соотношение сторон",
-  "composition": "описание композиции и размещения субъекта",
-  "subject_placement": "точное расположение в кадре (трети, золотое сечение)",
-  "shot_scale": "крупность плана (портрет, поясной, ростовой и т.д.)",
-  "camera_angle": "угол камеры (высота и поворот)",
-  "subject_pose": "детальное описание позы тела",
-  "subject_dynamics": "динамика движения (волосы, одежда, движение)",
-  "facial_expression": "выражение лица и эмоции",
-  "clothing": "одежда и аксессуары",
-  "hairstyle": "прическа",
-  "background": "описание фона",
-  "lighting": "освещение",
-  "color_palette": "цветовая палитра",
-  "mood": "настроение",
-  "full_prompt": "полный промпт для генерации в стиле этого изображения"
+  "medium_specification": "detailed medium-locked technical specification",
+  "aspect_ratio": "aspect ratio like 1:1, 16:9, etc."
 }"""
 
         try:
@@ -342,6 +288,93 @@ class ImageAnalyzer:
 
         except Exception as e:
             logger.error(f"Error analyzing person image: {e}")
+            raise
+
+    def refine_with_person(
+        self,
+        medium_specification: str,
+        person_image_path: str
+    ) -> str:
+        """
+        Refine medium specification with person's photo to create final generation prompt
+
+        Args:
+            medium_specification: Detailed style specification from reference analysis
+            person_image_path: Path to person's photo
+
+        Returns:
+            Final generation prompt harmonizing identity with medium
+        """
+        logger.info("Refining prompt with person photo...")
+
+        # Compress person image
+        image = self.compress_image(person_image_path, max_size=1024)
+
+        # Prompt based on the working app
+        prompt = f"""TECHNICAL SPECIFICATION TEMPLATE: "{medium_specification}".
+
+TASK: Harmonize Identity with the Specific Medium.
+
+1. IDENTITY: Maintain the exact features of the person in the photo (race, gender, age, eyes, hair).
+2. MEDIUM INTEGRITY (CRITICAL):
+   - If the template specifies a PHOTOGRAPH: The result MUST be a photo. No painterly effects. Use realistic skin textures, pores, and optical lens artifacts.
+   - If the template specifies a PAINTING/SKETCH: The face MUST be rendered using the same brushstrokes/pencil marks as the rest of the image. The person must look like they were "drawn" or "painted" by that artist, not a photo filtered to look like art.
+3. GENDER-AWARE ADAPTATION: If the person in the photo's gender differs from the template, adapt the clothing/styling to be gender-appropriate for the target while preserving the exact historical era and material texture.
+4. NO SMOOTHING: Forbid all digital smoothness. Demand raw texture: paper grain, film grain, or canvas grit across the entire face.
+
+Output a single comprehensive generation prompt."""
+
+        try:
+            # Convert image to base64
+            image_b64 = self._image_to_base64(image)
+
+            # Retry logic
+            max_retries = 3
+            retry_delays = [2, 4, 8]
+            response = None
+
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"Refine prompt attempt {attempt + 1}/{max_retries}")
+
+                    response = self.client.models.generate_content(
+                        model=self.model_name,
+                        contents={
+                            'parts': [
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
+                                {'text': prompt}
+                            ]
+                        }
+                    )
+
+                    logger.info("Prompt refinement successful")
+                    break
+
+                except Exception as api_error:
+                    error_msg = str(api_error)
+                    is_temporary = ('503' in error_msg or 'UNAVAILABLE' in error_msg or
+                                  '429' in error_msg or 'overloaded' in error_msg.lower() or
+                                  'rate limit' in error_msg.lower())
+
+                    if is_temporary and attempt < max_retries - 1:
+                        delay = retry_delays[attempt]
+                        logger.warning(f"Temporary API error (attempt {attempt + 1}/{max_retries}): {error_msg}")
+                        logger.info(f"Retrying in {delay} seconds...")
+                        time.sleep(delay)
+                    else:
+                        logger.error(f"API call failed: {error_msg}")
+                        raise
+
+            if response is None:
+                logger.error("Failed to get response after all retry attempts")
+                raise Exception("Failed to refine prompt with person")
+
+            refined_prompt = response.text.strip()
+            logger.info("Prompt refinement completed")
+            return refined_prompt
+
+        except Exception as e:
+            logger.error(f"Error refining prompt with person: {e}")
             raise
 
     def merge_prompts(

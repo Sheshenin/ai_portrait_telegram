@@ -177,23 +177,33 @@ class AIPortraitBot:
             if not reference_path or not person_path:
                 raise ValueError("Missing image paths")
 
-            logger.info("Starting image analysis...")
+            logger.info("Starting 3-stage processing...")
 
-            # Step 1: Analyze reference image (only for aspect_ratio)
-            logger.info("Analyzing reference image for aspect ratio...")
+            # Step 1: Analyze reference image for medium specification
+            logger.info("Step 1: Analyzing reference image for medium and style...")
             reference_data = self.analyzer.analyze_reference_image(reference_path)
+            medium_specification = reference_data.get('medium_specification', '')
             aspect_ratio = reference_data.get('aspect_ratio', '1:1')
 
+            logger.info(f"Medium specification: {medium_specification[:100]}...")
             logger.info(f"Aspect ratio: {aspect_ratio}")
+
+            # Step 2: Refine prompt with person's photo
+            logger.info("Step 2: Refining prompt with person's identity...")
+            refined_prompt = self.analyzer.refine_with_person(
+                medium_specification=medium_specification,
+                person_image_path=person_path
+            )
+
+            logger.info(f"Refined prompt length: {len(refined_prompt)} chars")
 
             # Send progress update
             await update.message.reply_text(config.MESSAGES['processing'])
 
-            # Step 2: Generate portrait with 2 images
-            logger.info("Generating portrait with Google Gemini...")
-            logger.info("Passing reference image for style and person image for identity")
+            # Step 3: Generate portrait with refined prompt + person photo
+            logger.info("Step 3: Generating portrait with Gemini...")
             image_data = self.generator.generate_portrait(
-                reference_image_path=reference_path,
+                refined_prompt=refined_prompt,
                 person_image_path=person_path,
                 aspect_ratio=aspect_ratio
             )
