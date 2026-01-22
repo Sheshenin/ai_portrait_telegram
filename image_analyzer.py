@@ -4,6 +4,7 @@ Analyzes reference images and person photos to create detailed prompts
 """
 import logging
 import json
+import io
 from typing import Dict, Tuple
 from PIL import Image
 import google.generativeai as genai
@@ -17,7 +18,47 @@ class ImageAnalyzer:
 
     def __init__(self):
         genai.configure(api_key=config.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(config.GOOGLE_VISION_MODEL)
+        self.model = genai.GenerativeModel(
+            config.GOOGLE_VISION_MODEL,
+            # Increase timeout for large images
+            request_options={"timeout": 120}
+        )
+
+    def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
+        """
+        Compress image to reduce API processing time
+
+        Args:
+            image_path: Path to the image file
+            max_size: Maximum dimension (width or height) in pixels
+
+        Returns:
+            Compressed PIL Image
+        """
+        image = Image.open(image_path)
+
+        # Get current size
+        width, height = image.size
+
+        # Calculate new size maintaining aspect ratio
+        if width > max_size or height > max_size:
+            if width > height:
+                new_width = max_size
+                new_height = int(height * (max_size / width))
+            else:
+                new_height = max_size
+                new_width = int(width * (max_size / height))
+
+            logger.info(f"Compressing image from {width}x{height} to {new_width}x{new_height}")
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Convert to RGB if needed (remove alpha channel)
+        if image.mode in ('RGBA', 'LA', 'P'):
+            rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+            rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+            image = rgb_image
+
+        return image
 
     def analyze_reference_image(self, image_path: str) -> Dict[str, str]:
         """
@@ -31,8 +72,8 @@ class ImageAnalyzer:
         """
         logger.info(f"Analyzing reference image: {image_path}")
 
-        # Загружаем изображение
-        image = Image.open(image_path)
+        # Загружаем и сжимаем изображение для ускорения обработки
+        image = self.compress_image(image_path, max_size=1024)
 
         # Детальный промпт для анализа образца согласно алгоритму
         prompt = """Проанализируй это изображение максимально подробно для создания AI-портрета.
@@ -118,8 +159,8 @@ class ImageAnalyzer:
         """
         logger.info(f"Analyzing person image: {image_path}")
 
-        # Загружаем изображение
-        image = Image.open(image_path)
+        # Загружаем и сжимаем изображение для ускорения обработки
+        image = self.compress_image(image_path, max_size=1024)
 
         # Детальный анализ человека
         prompt = """Проанализируй этого человека максимально детально для создания AI-портрета.
