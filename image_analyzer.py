@@ -375,8 +375,14 @@ class ImageAnalyzer:
                 else:
                     gender_swap_note += "If the reference has feminine clothing, replace it with appropriate masculine clothing while maintaining the style."
 
-        # Создаем финальный промпт: короткий, но информативный, с правильными приоритетами
-        final_prompt = f"""STYLE: {reference_data.get('image_type', 'portrait')} - {reference_data.get('technical_details', 'professional style')}. {reference_data.get('color_palette', 'natural colors')}. {reference_data.get('lighting', 'natural lighting')}. {reference_data.get('background', 'neutral background')}. {reference_data.get('mood', 'neutral mood')}.
+        # Создаем финальный промпт: используем full_prompt для детального стиля
+        # full_prompt содержит полное описание стиля от Gemini
+        style_description = reference_data.get('full_prompt',
+            f"{reference_data.get('image_type', 'portrait')} - {reference_data.get('technical_details', 'professional style')}. "
+            f"{reference_data.get('color_palette', 'natural colors')}. {reference_data.get('lighting', 'natural lighting')}. "
+            f"{reference_data.get('background', 'neutral background')}. {reference_data.get('mood', 'neutral mood')}.")
+
+        final_prompt = f"""STYLE: {style_description}
 
 COMPOSITION: {reference_data.get('shot_scale', 'portrait')} shot. {reference_data.get('camera_angle', 'eye level')}. {reference_data.get('subject_placement', 'centered')}.
 
