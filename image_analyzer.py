@@ -358,11 +358,24 @@ TASK: Create a portrait of the person in this photo, but place them INTO the sce
 
 CRITICAL INSTRUCTIONS:
 1. FACE IDENTITY: Use the EXACT face from this photo - this person must be 100% recognizable (facial features, proportions, age, ethnicity)
-2. CLOTHING: Use the CLOTHING from the reference specification above (adapt for gender if needed, but keep style/era/fabric)
-3. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
-4. POSE: Use the EXACT BODY POSITION and posture from specification
-5. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
-6. COLORS & COLOR GRADING (CRITICAL - NO AUTO CORRECTION):
+
+2. MEDIUM INTEGRITY (ABSOLUTELY CRITICAL - READ CAREFULLY):
+   - The attached photo is ONLY for face identity reference
+   - The MEDIUM (photo/painting/sketch) comes from the specification above, NOT from this photo
+   - If specification says PHOTOGRAPH: Create a photorealistic image with realistic skin, pores, optical lens effects
+   - If specification says PAINTING/ILLUSTRATION: The person's face MUST be PAINTED/DRAWN with visible brushstrokes or digital brush marks. This is NOT a photo with art filters - it's actual painted/illustrated artwork where you can see brush texture on the face
+   - If specification says SKETCH/DRAWING: The person's face MUST be DRAWN with visible pencil/charcoal marks, hatching, paper texture. NOT a photo converted to sketch - actual hand-drawn appearance
+   - CRITICAL: Do NOT make it photorealistic just because the input is a photo. Match the MEDIUM from specification.
+
+3. CLOTHING: Use the CLOTHING from the reference specification above (adapt for gender if needed, but keep style/era/fabric)
+
+4. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
+
+5. POSE: Use the EXACT BODY POSITION and posture from specification
+
+6. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
+
+7. COLORS & COLOR GRADING (CRITICAL - NO AUTO CORRECTION):
    - Use the EXACT color palette, color temperature, and white balance from specification
    - If the reference has WARM colors (orange sunset, golden hour) - PRESERVE the warmth, do NOT auto-correct to neutral
    - If the reference has COOL colors (blue hour, cyan tones) - PRESERVE the coolness, do NOT warm it up
@@ -371,11 +384,12 @@ CRITICAL INSTRUCTIONS:
    - Apply the EXACT color grading (shadows/highlights/midtones color tints)
    - Match the EXACT saturation and contrast levels
    - If there are color filters (sepia, vintage, faded) - apply them exactly
-7. COMPOSITION: Match the EXACT framing and camera angle from specification
-8. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
-9. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
 
-Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere. The color grading MUST match - if it's an orange sunset, the final image MUST be orange, not corrected to yellow or neutral.
+8. COMPOSITION: Match the EXACT framing and camera angle from specification
+
+9. TEXTURE: Show the physical texture of the medium (film grain for photo / canvas weave and brushstrokes for painting / paper fibers and pencil marks for sketch)
+
+Think of this as: Take this person's face and RECREATE IT in the exact medium/style from specification (painting/sketch/photo), then place them into that scene with exact clothing, pose, lighting, atmosphere, and colors. If specification says "watercolor painting", the final result must look like an actual watercolor painting where you see brush texture on the person's face - NOT a photo with watercolor filter applied.
 
 Output a single comprehensive generation prompt that combines everything."""
 
