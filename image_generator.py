@@ -82,12 +82,19 @@ class ImageGenerator:
             # Load and compress the person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Create the generation prompt with critical instructions
+            # Create the generation prompt with CRITICAL focus on facial likeness
             generation_prompt = (
-                f"MASTERPIECE RENDERING. CRITICAL: Respect the MEDIUM identified in the prompt. "
-                f"If it's a photo, make it look like a physical print. "
-                f"If it's art, show the physical texture of paper/canvas. "
-                f"LIKENESS IS MANDATORY. EXECUTE PROMPT: {prompt}"
+                f"CRITICAL INSTRUCTIONS:\n\n"
+                f"1. FACIAL LIKENESS (TOP PRIORITY):\n"
+                f"   - USE THE EXACT FACE from the provided photograph\n"
+                f"   - PRESERVE 100% facial recognition - the person MUST be recognizable\n"
+                f"   - DO NOT modify facial features, proportions, or unique characteristics\n"
+                f"   - Only apply the artistic style, NOT change the face\n\n"
+                f"2. MEDIUM & STYLE:\n"
+                f"   - Respect the MEDIUM identified in the prompt\n"
+                f"   - If it's a photo, make it look like a physical print\n"
+                f"   - If it's art, show the physical texture of paper/canvas\n\n"
+                f"EXECUTE PROMPT: {prompt}"
             )
 
             logger.info("Calling Gemini API for image generation...")

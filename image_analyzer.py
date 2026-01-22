@@ -161,56 +161,28 @@ class ImageAnalyzer:
         # Загружаем и сжимаем изображение для ускорения обработки
         image = self.compress_image(image_path, max_size=1024)
 
-        # Детальный анализ человека
-        prompt = """Проанализируй этого человека максимально детально для создания AI-портрета.
+        # Упрощенный анализ человека - фокус на базовых характеристиках
+        # Сходство лица будет определяться самим изображением, а не текстовым описанием
+        prompt = """Проанализируй базовые характеристики этого человека для AI-портрета.
 
-ВАЖНО: Нужно описать человека так, чтобы его можно было узнать на сгенерированном портрете.
+ВАЖНО: Опиши только основные атрибуты. Черты лица НЕ описывай - они будут взяты с фотографии.
 
-1. БАЗОВЫЕ ХАРАКТЕРИСТИКИ:
+1. БАЗОВАЯ ИНФОРМАЦИЯ:
    - Пол (мужчина/женщина)
    - Примерный возраст
-   - Раса и этническая принадлежность
 
-2. ЧЕРТЫ ЛИЦА (ДЕТАЛЬНО):
-   - Форма лица (круглое/овальное/квадратное/треугольное/продолговатое)
-   - Глаза (цвет, форма, размер, расстояние между ними)
-   - Нос (форма, размер)
-   - Губы (форма, размер)
-   - Подбородок (форма, выраженность)
-   - Скулы (выраженность)
-   - Брови (форма, густота, цвет)
-   - Особенности (родинки, веснушки, другие отличительные черты)
-
-3. ВОЛОСЫ:
-   - Цвет волос (точный оттенок)
-   - Длина волос (очень короткие/короткие/средние/длинные/очень длинные)
-   - Стиль прически (прямые/волнистые/кудрявые, зачесаны назад/на бок/распущены)
-   - Текстура и объем
-
-4. ТЕЛОСЛОЖЕНИЕ:
-   - Тип фигуры
-   - Комплекция
-
-5. ЦВЕТ КОЖИ:
-   - Точный оттенок кожи
-   - Тон (теплый/холодный)
+2. ВОЛОСЫ (ПОДРОБНО):
+   - Цвет волос (точный оттенок: блонд, рыжий, брюнет, шатен, седой и т.д.)
+   - Длина волос (очень короткие/короткие/до плеч/длинные/очень длинные)
+   - Стиль прически (прямые/волнистые/кудрявые, распущены/собраны/зачесаны назад/на бок и т.д.)
 
 Ответ дай СТРОГО в формате JSON (без дополнительного текста, только JSON):
 {
   "gender": "пол",
   "age": "возраст",
-  "ethnicity": "раса",
-  "face_shape": "форма лица",
-  "eyes": "описание глаз",
-  "nose": "описание носа",
-  "lips": "описание губ",
-  "facial_features": "общие черты лица",
   "hair_color": "цвет волос",
   "hair_length": "длина волос",
-  "hair_style": "стиль прически",
-  "skin_tone": "тон кожи",
-  "body_type": "телосложение",
-  "distinctive_features": "отличительные особенности"
+  "hair_style": "стиль прически"
 }"""
 
         try:
@@ -268,7 +240,7 @@ class ImageAnalyzer:
                 else:
                     gender_swap_note += "If the reference has feminine clothing, replace it with appropriate masculine clothing while maintaining the style."
 
-        # Создаем финальный промпт, заменяя характеристики человека из образца
+        # Создаем финальный промпт с фокусом на стиль, а лицо берем из изображения
         final_prompt = f"""Create a portrait image with the following specifications:
 
 STYLE AND TECHNIQUE:
@@ -283,31 +255,24 @@ COMPOSITION:
 - Composition: {reference_data.get('composition', 'centered portrait')}
 - Background: {reference_data.get('background', 'neutral background')}
 
-SUBJECT - CRITICAL (100% RECOGNIZABLE):
+SUBJECT - USE FACE FROM PROVIDED PHOTOGRAPH:
 - Gender: {person_data.get('gender', 'adult')}
-- Age: {person_data.get('age', 'adult')}
-- Ethnicity: {person_data.get('ethnicity', 'not specified')}
-- Face shape: {person_data.get('face_shape', 'oval')}
-- Eyes: {person_data.get('eyes', 'expressive eyes')}
-- Nose: {person_data.get('nose', 'proportional nose')}
-- Lips: {person_data.get('lips', 'natural lips')}
-- Facial features: {person_data.get('facial_features', 'natural features')}
-- Skin tone: {person_data.get('skin_tone', 'natural skin tone')}
+- Age: approximately {person_data.get('age', 'adult')}
 - Hair color: {person_data.get('hair_color', 'natural hair color')}
 - Hair length: {person_data.get('hair_length', 'medium length')}
 - Hair style: {person_data.get('hair_style', 'natural style')}
-- Distinctive features: {person_data.get('distinctive_features', 'none')}
+- FACE: Use the exact face from the provided photograph (attached image)
 
 POSE AND CLOTHING:
 - Pose: {reference_data.get('subject_pose', 'natural pose')}
 - Clothing: {reference_data.get('clothing', 'casual attire')}{gender_swap_note}
 
 CRITICAL REQUIREMENTS:
-1. The person MUST be 100% recognizable with all facial features accurately represented
-2. Maintain the exact style and technique from the reference image
-3. Keep the same composition and framing
-4. The final image should look like it was created in the same style as the reference, but featuring this specific person
-5. Do NOT send the reference image to the generation model, only this prompt
+1. USE THE EXACT FACE from the attached photograph - this is the #1 priority
+2. The person's face MUST be 100% recognizable from the photograph
+3. Apply ONLY the artistic style, composition, and pose from the reference description
+4. Do NOT modify facial features - transfer the face as-is into the artistic style
+5. The final image should look like: the person from the photo rendered in the reference style
 """
 
         aspect_ratio = reference_data.get('aspect_ratio', '1:1')
