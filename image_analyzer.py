@@ -22,31 +22,6 @@ class ImageAnalyzer:
         self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
         self.text_model = config.GOOGLE_TEXT_MODEL  # For text analysis stages 1-2
 
-    def detect_aspect_ratio(self, image: Image.Image) -> str:
-        """
-        Detect aspect ratio from image dimensions
-
-        Args:
-            image: PIL Image object
-
-        Returns:
-            Aspect ratio string (1:1, 16:9, 9:16, 4:3, 3:4)
-        """
-        width, height = image.size
-        ratio = width / height
-
-        # Determine closest supported aspect ratio
-        if ratio < 0.65:
-            return '9:16'
-        elif ratio < 0.85:
-            return '3:4'
-        elif ratio < 1.2:
-            return '1:1'
-        elif ratio < 1.5:
-            return '4:3'
-        else:
-            return '16:9'
-
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
         Compress image to reduce API processing time
@@ -112,11 +87,8 @@ class ImageAnalyzer:
         # Загружаем и сжимаем изображение для ускорения обработки
         image = self.compress_image(image_path, max_size=1024)
 
-        # Detect aspect ratio from image
-        aspect_ratio = self.detect_aspect_ratio(image)
-
-        # Simple prompt based on working app (returns TEXT, not JSON)
-        prompt = """Perform a two-stage forensic analysis of this image's medium and style:
+        # Детальный промпт для анализа медиума и стиля (как в рабочем приложении)
+        prompt = """Perform a comprehensive forensic analysis of this image:
 
 STAGE 1: MEDIUM CLASSIFICATION
 Identify the exact medium: Is it a high-fidelity Photograph, an Oil/Acrylic Painting, a Watercolor, a Pencil/Charcoal Sketch, an Etching, or Digital Art?
@@ -127,12 +99,29 @@ STAGE 2: MEDIUM-SPECIFIC TECHNICAL SPECIFICATION
 - IF SKETCH: Describe graphite/charcoal grit, smudge marks, eraser ghosts, hatching density, and paper fibers.
 - IF DIGITAL: Identify the specific software aesthetic (brush engines used).
 
-STAGE 3: COMPOSITION & CHARACTER
-1. POSE & PLACEMENT: Exact posture and placement in frame.
-2. GENDER & CLOTHING: Identify the subject's gender and describe the outfit's material and style.
-3. ENVIRONMENT: Background details.
+STAGE 3: COMPOSITION & CHARACTER (CRITICAL - DESCRIBE IN DETAIL)
+1. POSE & PLACEMENT: Exact posture, body position, and placement in frame (centered, off-center, rule of thirds, etc.)
+2. CLOTHING & ACCESSORIES: Describe every detail - fabric type, color, style, era, buttons, jewelry, hat, everything visible
+3. ENVIRONMENT & BACKGROUND: Complete description - indoor/outdoor, objects, scenery, depth, foreground/background elements
+4. ATMOSPHERE: Mood, time of day, weather, emotional tone, color temperature (warm/cool)
+5. LIGHTING: Direction, intensity, shadows, highlights, color of light
+6. COLORS: Dominant colors, color palette, saturation, contrast
+7. CAMERA ANGLE: Eye level, low angle, high angle, perspective
+8. ASPECT RATIO: Exact ratio (1:1, 16:9, 9:16, 4:3, 3:4, etc.)
 
-Output a "Medium-Locked Technical Specification" that mandates these exact physical properties."""
+Output a complete specification that includes ALL these details so the image can be recreated exactly.
+
+IMPORTANT: Return response in JSON format:
+{
+  "medium_specification": "detailed medium and technique description",
+  "clothing": "complete clothing and accessories description",
+  "environment": "complete background and environment description",
+  "atmosphere": "mood, lighting, time of day, emotional tone",
+  "colors": "color palette and scheme",
+  "pose": "exact body position and posture",
+  "composition": "framing, placement, camera angle",
+  "aspect_ratio": "aspect ratio like 1:1, 16:9, etc."
+}"""
 
         try:
             # Convert image to base64 for new SDK
@@ -148,13 +137,12 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
                     logger.info(f"Reference analysis attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with new SDK using TEXT model (not image model)
-                    # CRITICAL: Image FIRST, then text (like working app)
                     response = self.client.models.generate_content(
                         model=self.text_model,
                         contents={
                             'parts': [
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
-                                {'text': prompt}
+                                {'text': prompt},
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
                             ]
                         }
                     )
@@ -186,16 +174,19 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
                 logger.error("Failed to get response after all retry attempts")
                 raise Exception("Failed to analyze reference image after retries")
 
-            # Return plain text specification (not JSON)
+            # Очищаем ответ от markdown форматирования
             result_text = response.text.strip()
-            logger.info("Reference image analysis completed")
-            logger.info(f"Detected aspect ratio: {aspect_ratio}")
+            if result_text.startswith('```json'):
+                result_text = result_text[7:]
+            if result_text.startswith('```'):
+                result_text = result_text[3:]
+            if result_text.endswith('```'):
+                result_text = result_text[:-3]
+            result_text = result_text.strip()
 
-            # Return as dict with specification and detected aspect ratio
-            return {
-                'specification': result_text,
-                'aspect_ratio': aspect_ratio
-            }
+            result = json.loads(result_text)
+            logger.info("Reference image analysis completed")
+            return result
 
         except Exception as e:
             logger.error(f"Error analyzing reference image: {e}")
@@ -254,13 +245,12 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
                     logger.info(f"Person analysis attempt {attempt + 1}/{max_retries}")
 
                     # Generate content with new SDK using TEXT model (not image model)
-                    # CRITICAL: Image FIRST, then text (like working app)
                     response = self.client.models.generate_content(
                         model=self.text_model,
                         contents={
                             'parts': [
-                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}},
-                                {'text': prompt}
+                                {'text': prompt},
+                                {'inline_data': {'mime_type': 'image/jpeg', 'data': image_b64}}
                             ]
                         }
                     )
@@ -312,37 +302,67 @@ Output a "Medium-Locked Technical Specification" that mandates these exact physi
 
     def refine_with_person(
         self,
-        base_prompt: str,
+        reference_data: Dict[str, str],
         person_image_path: str
     ) -> str:
         """
-        Refine base prompt with person's photo (short version from working app)
+        Refine reference specification with person's photo to create final generation prompt
 
         Args:
-            base_prompt: Base specification from reference analysis
+            reference_data: Complete reference analysis (medium, clothing, environment, etc.)
             person_image_path: Path to person's photo
 
         Returns:
-            Final refined generation prompt
+            Final generation prompt harmonizing identity with reference scene
         """
         logger.info("Refining prompt with person photo...")
 
         # Compress person image
         image = self.compress_image(person_image_path, max_size=1024)
 
-        # Short prompt based on working app
-        prompt = f"""TECHNICAL SPECIFICATION TEMPLATE: "{base_prompt}".
+        # Comprehensive prompt that includes ALL elements from reference
+        medium_spec = reference_data.get('medium_specification', '')
+        clothing = reference_data.get('clothing', '')
+        environment = reference_data.get('environment', '')
+        atmosphere = reference_data.get('atmosphere', '')
+        colors = reference_data.get('colors', '')
+        pose = reference_data.get('pose', '')
+        composition = reference_data.get('composition', '')
 
-TASK: Harmonize Identity with the Specific Medium.
+        prompt = f"""REFERENCE IMAGE COMPLETE SPECIFICATION:
 
-1. IDENTITY: Maintain the exact features of the person in the photo (race, gender, age, eyes, hair).
-2. MEDIUM INTEGRITY (CRITICAL):
-   - If the template specifies a PHOTOGRAPH: The result MUST be a photo. No painterly effects. Use realistic skin textures, pores, and optical lens artifacts.
-   - If the template specifies a PAINTING/SKETCH: The face MUST be rendered using the same brushstrokes/pencil marks as the rest of the image. The person must look like they were "drawn" or "painted" by that artist, not a photo filtered to look like art.
-3. GENDER-AWARE ADAPTATION: If the person in the photo's gender differs from the template, adapt the clothing/styling to be gender-appropriate for the target while preserving the exact historical era and material texture.
-4. NO SMOOTHING: Forbid all digital smoothness. Demand raw texture: paper grain, film grain, or canvas grit across the entire face.
+MEDIUM & TECHNIQUE: {medium_spec}
 
-Output a single comprehensive generation prompt."""
+CLOTHING & OUTFIT: {clothing}
+
+ENVIRONMENT & BACKGROUND: {environment}
+
+ATMOSPHERE: {atmosphere}
+
+COLORS: {colors}
+
+POSE & BODY POSITION: {pose}
+
+COMPOSITION: {composition}
+
+---
+
+TASK: Create a portrait of the person in this photo, but place them INTO the scene described above.
+
+CRITICAL INSTRUCTIONS:
+1. FACE IDENTITY: Use the EXACT face from this photo - this person must be 100% recognizable (facial features, proportions, age, ethnicity)
+2. CLOTHING: Use the CLOTHING from the reference specification above (adapt for gender if needed, but keep style/era/fabric)
+3. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
+4. POSE: Use the EXACT BODY POSITION and posture from specification
+5. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
+6. COLORS: Use the EXACT color palette from specification
+7. COMPOSITION: Match the EXACT framing and camera angle from specification
+8. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
+9. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
+
+Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere.
+
+Output a single comprehensive generation prompt that combines everything."""
 
         try:
             # Convert image to base64
