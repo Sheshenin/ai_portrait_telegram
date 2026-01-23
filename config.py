@@ -16,7 +16,7 @@ PORT = int(os.getenv('PORT', 10000))
 
 # Google AI Configuration (for Gemini Vision and Image Generation)
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-GOOGLE_TEXT_MODEL = os.getenv('GOOGLE_TEXT_MODEL', 'gemini-2.0-flash-exp')  # For text analysis (stages 1-2)
+GOOGLE_TEXT_MODEL = os.getenv('GOOGLE_TEXT_MODEL', 'gemini-1.5-flash')  # For text analysis (stages 1-2)
 GOOGLE_IMAGE_MODEL = os.getenv('GOOGLE_IMAGE_MODEL', 'gemini-2.5-flash-image')  # For image generation (stage 3)
 
 # Validate required configuration
