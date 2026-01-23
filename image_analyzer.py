@@ -22,6 +22,31 @@ class ImageAnalyzer:
         self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
         self.text_model = config.GOOGLE_TEXT_MODEL  # For text analysis stages 1-2
 
+    def detect_aspect_ratio(self, image: Image.Image) -> str:
+        """
+        Detect aspect ratio from image dimensions (like working app)
+
+        Args:
+            image: PIL Image object
+
+        Returns:
+            Aspect ratio string (1:1, 16:9, 9:16, 4:3, 3:4)
+        """
+        width, height = image.size
+        ratio = width / height
+
+        # Determine closest supported aspect ratio for Gemini API
+        if ratio < 0.65:
+            return '9:16'
+        elif ratio < 0.85:
+            return '3:4'
+        elif ratio < 1.2:
+            return '1:1'
+        elif ratio < 1.5:
+            return '4:3'
+        else:
+            return '16:9'
+
     def compress_image(self, image_path: str, max_size: int = 1024) -> Image.Image:
         """
         Compress image to reduce API processing time
@@ -86,6 +111,10 @@ class ImageAnalyzer:
 
         # Загружаем и сжимаем изображение для ускорения обработки
         image = self.compress_image(image_path, max_size=1024)
+
+        # Detect aspect ratio from image dimensions (like working app)
+        aspect_ratio = self.detect_aspect_ratio(image)
+        logger.info(f"Detected aspect ratio from reference: {aspect_ratio}")
 
         # Детальный промпт для анализа медиума и стиля (как в рабочем приложении)
         prompt = """Perform a comprehensive forensic analysis of this image:
@@ -185,7 +214,13 @@ IMPORTANT: Return response in JSON format:
             result_text = result_text.strip()
 
             result = json.loads(result_text)
+
+            # Override aspect_ratio with detected value from image dimensions
+            # (Gemini may return wrong value, we calculate from actual image)
+            result['aspect_ratio'] = aspect_ratio
+
             logger.info("Reference image analysis completed")
+            logger.info(f"Using aspect ratio from reference dimensions: {aspect_ratio}")
             return result
 
         except Exception as e:
