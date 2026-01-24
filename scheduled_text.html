@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание текста</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .text-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+
+        .text-content {
+            font-size: 1.8em;
+            color: #2c3e50;
+            font-weight: 600;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .schedule-list {
+            text-align: left;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .schedule-list h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .schedule-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #764ba2;
+        }
+
+        .schedule-item.active {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Расписание текста</h1>
+
+        <div class="text-display">
+            <div class="text-content" id="mainText">Загрузка...</div>
+        </div>
+
+        <div class="info">
+            <div class="info-item">
+                <div class="info-label">Текущее время</div>
+                <div class="info-value" id="currentTime">--:--:--</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Следующее обновление</div>
+                <div class="info-value" id="nextUpdate">--:--:--</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Режим</div>
+                <div class="info-value" id="mode">По времени</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="switchMode('time')">Режим по времени</button>
+            <button onclick="switchMode('interval')">Режим интервалов</button>
+            <button onclick="updateTextNow()">Обновить сейчас</button>
+        </div>
+
+        <div class="schedule-list">
+            <h3>📋 Расписание:</h3>
+            <div id="scheduleDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        // Расписание по времени суток
+        const timeSchedule = [
+            { time: '06:00', text: '🌅 Доброе утро! Начинается новый день!' },
+            { time: '09:00', text: '☕ Время для продуктивной работы!' },
+            { time: '12:00', text: '🍽️ Обеденное время - пора сделать перерыв!' },
+            { time: '15:00', text: '💼 Продолжаем работать с новыми силами!' },
+            { time: '18:00', text: '🌆 Вечер приближается, пора завершать дела!' },
+            { time: '21:00', text: '🌙 Время для отдыха и релаксации!' },
+            { time: '00:00', text: '🌃 Поздний вечер, пора спать!' }
+        ];
+
+        // Тексты для режима интервалов
+        const intervalTexts = [
+            '🚀 Первый текст - начало цикла!',
+            '⭐ Второй текст - продолжаем!',
+            '💎 Третий текст - середина пути!',
+            '🎯 Четвертый текст - почти финиш!',
+            '🏆 Пятый текст - завершение цикла!'
+        ];
+
+        let currentMode = 'time'; // 'time' или 'interval'
+        let intervalIndex = 0;
+        let intervalDuration = 10000; // 10 секунд между сменами в режиме интервалов
+        let intervalTimer = null;
+
+        // Обновление текущего времени
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU');
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Получение текста по текущему времени
+        function getTextByTime() {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            // Находим подходящий текст
+            let selectedText = timeSchedule[0];
+
+            for (let i = 0; i < timeSchedule.length; i++) {
+                if (currentTime >= timeSchedule[i].time) {
+                    selectedText = timeSchedule[i];
+                } else {
+                    break;
+                }
+            }
+
+            return selectedText;
+        }
+
+        // Получение следующего времени обновления для режима времени
+        function getNextUpdateTime() {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            for (let i = 0; i < timeSchedule.length; i++) {
+                if (currentTime < timeSchedule[i].time) {
+                    return timeSchedule[i].time;
+                }
+            }
+
+            return timeSchedule[0].time + ' (завтра)';
+        }
+
+        // Обновление текста в режиме времени
+        function updateTextByTime() {
+            const textData = getTextByTime();
+            document.getElementById('mainText').textContent = textData.text;
+            document.getElementById('nextUpdate').textContent = getNextUpdateTime();
+            updateScheduleDisplay();
+        }
+
+        // Обновление текста в режиме интервалов
+        function updateTextByInterval() {
+            document.getElementById('mainText').textContent = intervalTexts[intervalIndex];
+            intervalIndex = (intervalIndex + 1) % intervalTexts.length;
+
+            const nextUpdateSeconds = intervalDuration / 1000;
+            document.getElementById('nextUpdate').textContent = `через ${nextUpdateSeconds} сек`;
+        }
+
+        // Переключение режима
+        function switchMode(mode) {
+            currentMode = mode;
+
+            if (intervalTimer) {
+                clearInterval(intervalTimer);
+                intervalTimer = null;
+            }
+
+            if (mode === 'time') {
+                document.getElementById('mode').textContent = 'По времени';
+                updateTextByTime();
+                // Проверяем каждую минуту
+                intervalTimer = setInterval(updateTextByTime, 60000);
+            } else {
+                document.getElementById('mode').textContent = 'Интервалы';
+                intervalIndex = 0;
+                updateTextByInterval();
+                intervalTimer = setInterval(updateTextByInterval, intervalDuration);
+            }
+
+            updateScheduleDisplay();
+        }
+
+        // Принудительное обновление
+        function updateTextNow() {
+            if (currentMode === 'time') {
+                updateTextByTime();
+            } else {
+                updateTextByInterval();
+            }
+        }
+
+        // Отображение расписания
+        function updateScheduleDisplay() {
+            const scheduleDiv = document.getElementById('scheduleDisplay');
+
+            if (currentMode === 'time') {
+                const currentTextData = getTextByTime();
+                scheduleDiv.innerHTML = timeSchedule.map(item => {
+                    const isActive = item.time === currentTextData.time;
+                    return `<div class="schedule-item ${isActive ? 'active' : ''}">
+                        <strong>${item.time}</strong> - ${item.text}
+                    </div>`;
+                }).join('');
+            } else {
+                scheduleDiv.innerHTML = intervalTexts.map((text, index) => {
+                    const isActive = index === (intervalIndex === 0 ? intervalTexts.length - 1 : intervalIndex - 1);
+                    return `<div class="schedule-item ${isActive ? 'active' : ''}">
+                        <strong>Шаг ${index + 1}</strong> - ${text}
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        // Инициализация
+        function init() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            switchMode('time');
+        }
+
+        // Запуск при загрузке страницы
+        window.onload = init;
+    </script>
+</body>
+</html>
