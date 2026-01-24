@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание текста</title>
+    <title>Расписание вебинаров</title>
     <style>
         * {
             margin: 0;
@@ -15,51 +15,44 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
         .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .current-time {
+            font-size: 1.3em;
+            margin-top: 10px;
+            opacity: 0.95;
+        }
+
+        .webinar-card {
             background: white;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-        }
-
-        h1 {
-            color: #333;
+            animation: slideIn 0.5s ease;
             margin-bottom: 30px;
-            font-size: 2.5em;
         }
 
-        .text-display {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            padding: 40px;
-            margin: 30px 0;
-            min-height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.5s ease;
-        }
-
-        .text-content {
-            font-size: 1.8em;
-            color: #2c3e50;
-            font-weight: 600;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
+        @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -67,269 +60,528 @@
             }
         }
 
-        .info {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .info-item {
-            background: #f8f9fa;
-            padding: 15px 25px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .info-value {
-            font-size: 1.2em;
-            color: #333;
+        .webinar-status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
             font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 0.9em;
         }
 
-        .controls {
-            margin-top: 30px;
+        .status-live {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .webinar-title {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .webinar-description {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .webinar-time {
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
 
-        button {
+        .time-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .time-icon {
+            font-size: 1.3em;
+        }
+
+        .join-button {
+            display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
+            text-decoration: none;
+            padding: 18px 45px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
+        .join-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
         }
 
-        .schedule-list {
-            text-align: left;
+        .no-webinar {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .no-webinar-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .no-webinar h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .no-webinar p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .next-webinar {
             margin-top: 30px;
+            padding: 25px;
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
+            text-align: left;
         }
 
-        .schedule-list h3 {
+        .next-webinar h3 {
             color: #667eea;
             margin-bottom: 15px;
         }
 
-        .schedule-item {
-            padding: 10px;
-            margin: 5px 0;
+        .next-webinar-item {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .schedule-toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .toggle-button {
             background: white;
-            border-radius: 5px;
-            border-left: 3px solid #764ba2;
+            color: #667eea;
+            border: 2px solid white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            background: transparent;
+            color: white;
+        }
+
+        .full-schedule {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .full-schedule.visible {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .full-schedule h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .schedule-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
         }
 
         .schedule-item.active {
-            border-left-color: #28a745;
             background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .schedule-item.past {
+            opacity: 0.5;
+        }
+
+        .schedule-date {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .schedule-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .time-remaining {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
+            color: #333;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1em;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📅 Расписание текста</h1>
-
-        <div class="text-display">
-            <div class="text-content" id="mainText">Загрузка...</div>
+        <div class="header">
+            <h1>🎓 Расписание вебинаров</h1>
+            <div class="current-time" id="currentTime">--:--:--</div>
         </div>
 
-        <div class="info">
-            <div class="info-item">
-                <div class="info-label">Текущее время</div>
-                <div class="info-value" id="currentTime">--:--:--</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Следующее обновление</div>
-                <div class="info-value" id="nextUpdate">--:--:--</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Режим</div>
-                <div class="info-value" id="mode">По времени</div>
-            </div>
+        <div id="webinarContainer"></div>
+
+        <div class="schedule-toggle">
+            <button class="toggle-button" onclick="toggleSchedule()">
+                <span id="toggleText">📋 Показать полное расписание</span>
+            </button>
         </div>
 
-        <div class="controls">
-            <button onclick="switchMode('time')">Режим по времени</button>
-            <button onclick="switchMode('interval')">Режим интервалов</button>
-            <button onclick="updateTextNow()">Обновить сейчас</button>
-        </div>
-
-        <div class="schedule-list">
-            <h3>📋 Расписание:</h3>
-            <div id="scheduleDisplay"></div>
+        <div class="full-schedule" id="fullSchedule">
+            <h2>Полное расписание вебинаров</h2>
+            <div id="scheduleList"></div>
         </div>
     </div>
 
     <script>
-        // Расписание по времени суток
-        const timeSchedule = [
-            { time: '06:00', text: '🌅 Доброе утро! Начинается новый день!' },
-            { time: '09:00', text: '☕ Время для продуктивной работы!' },
-            { time: '12:00', text: '🍽️ Обеденное время - пора сделать перерыв!' },
-            { time: '15:00', text: '💼 Продолжаем работать с новыми силами!' },
-            { time: '18:00', text: '🌆 Вечер приближается, пора завершать дела!' },
-            { time: '21:00', text: '🌙 Время для отдыха и релаксации!' },
-            { time: '00:00', text: '🌃 Поздний вечер, пора спать!' }
+        // Расписание вебинаров (12 вебинаров по 75 минут каждый)
+        const webinars = [
+            {
+                date: '2026-01-27', // ГГГГ-ММ-ДД
+                time: '10:00',      // ЧЧ:ММ
+                title: 'Введение в искусственный интеллект',
+                description: 'Познакомьтесь с основами ИИ, машинного обучения и нейронных сетей. Узнайте, как ИИ меняет современный мир и какие возможности он открывает для бизнеса и личного развития.',
+                url: 'https://example.com/webinar1'
+            },
+            {
+                date: '2026-01-28',
+                time: '14:00',
+                title: 'Python для анализа данных',
+                description: 'Изучите мощные библиотеки Python: Pandas, NumPy и Matplotlib. Научитесь обрабатывать, анализировать и визуализировать данные для принятия обоснованных решений.',
+                url: 'https://example.com/webinar2'
+            },
+            {
+                date: '2026-01-29',
+                time: '11:00',
+                title: 'Веб-разработка с React',
+                description: 'Создавайте современные интерактивные веб-приложения с использованием React. Узнайте о компонентах, хуках, состоянии и лучших практиках разработки.',
+                url: 'https://example.com/webinar3'
+            },
+            {
+                date: '2026-01-30',
+                time: '16:00',
+                title: 'Основы кибербезопасности',
+                description: 'Защитите свои данные и системы от киберугроз. Изучите основные принципы безопасности, методы защиты и инструменты для обеспечения информационной безопасности.',
+                url: 'https://example.com/webinar4'
+            },
+            {
+                date: '2026-02-03',
+                time: '10:00',
+                title: 'DevOps и CI/CD практики',
+                description: 'Автоматизируйте процессы разработки и развертывания. Познакомьтесь с Docker, Kubernetes, Jenkins и другими инструментами современного DevOps.',
+                url: 'https://example.com/webinar5'
+            },
+            {
+                date: '2026-02-04',
+                time: '13:00',
+                title: 'Блокчейн и криптовалюты',
+                description: 'Разберитесь в технологии блокчейн, смарт-контрактах и децентрализованных приложениях. Узнайте о перспективах и применении криптовалют.',
+                url: 'https://example.com/webinar6'
+            },
+            {
+                date: '2026-02-05',
+                time: '15:00',
+                title: 'Облачные вычисления: AWS и Azure',
+                description: 'Освойте облачные платформы AWS и Microsoft Azure. Научитесь разворачивать, масштабировать и управлять приложениями в облаке.',
+                url: 'https://example.com/webinar7'
+            },
+            {
+                date: '2026-02-06',
+                time: '11:30',
+                title: 'Мобильная разработка с Flutter',
+                description: 'Создавайте кроссплатформенные мобильные приложения с Flutter. Один код для iOS и Android - экономьте время и ресурсы.',
+                url: 'https://example.com/webinar8'
+            },
+            {
+                date: '2026-02-10',
+                time: '14:30',
+                title: 'Архитектура микросервисов',
+                description: 'Проектируйте масштабируемые и гибкие приложения на основе микросервисной архитектуры. Изучите паттерны, best practices и антипаттерны.',
+                url: 'https://example.com/webinar9'
+            },
+            {
+                date: '2026-02-11',
+                time: '10:30',
+                title: 'Тестирование ПО: от теории к практике',
+                description: 'Обеспечьте качество своего кода с помощью эффективного тестирования. Юнит-тесты, интеграционные тесты, TDD и автоматизация тестирования.',
+                url: 'https://example.com/webinar10'
+            },
+            {
+                date: '2026-02-12',
+                time: '16:30',
+                title: 'GraphQL: современный подход к API',
+                description: 'Замените REST на GraphQL для более эффективной работы с данными. Узнайте о преимуществах, инструментах и лучших практиках использования GraphQL.',
+                url: 'https://example.com/webinar11'
+            },
+            {
+                date: '2026-02-13',
+                time: '12:00',
+                title: 'Карьера в IT: советы и стратегии',
+                description: 'Постройте успешную карьеру в сфере информационных технологий. Резюме, собеседования, развитие навыков и построение профессиональной сети.',
+                url: 'https://example.com/webinar12'
+            }
         ];
 
-        // Тексты для режима интервалов
-        const intervalTexts = [
-            '🚀 Первый текст - начало цикла!',
-            '⭐ Второй текст - продолжаем!',
-            '💎 Третий текст - середина пути!',
-            '🎯 Четвертый текст - почти финиш!',
-            '🏆 Пятый текст - завершение цикла!'
-        ];
+        const WEBINAR_DURATION = 75; // минуты
 
-        let currentMode = 'time'; // 'time' или 'interval'
-        let intervalIndex = 0;
-        let intervalDuration = 10000; // 10 секунд между сменами в режиме интервалов
-        let intervalTimer = null;
+        // Преобразование даты и времени вебинара в объект Date
+        function parseWebinarDateTime(webinar) {
+            const [year, month, day] = webinar.date.split('-').map(Number);
+            const [hours, minutes] = webinar.time.split(':').map(Number);
+            return new Date(year, month - 1, day, hours, minutes);
+        }
+
+        // Проверка, активен ли вебинар сейчас
+        function isWebinarActive(webinar, now) {
+            const startTime = parseWebinarDateTime(webinar);
+            const endTime = new Date(startTime.getTime() + WEBINAR_DURATION * 60000);
+            return now >= startTime && now < endTime;
+        }
+
+        // Форматирование даты
+        function formatDate(date) {
+            const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                          'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            return `${day} ${month}`;
+        }
+
+        // Вычисление оставшегося времени
+        function getTimeRemaining(startTime, now) {
+            const diff = startTime - now;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (days > 0) return `через ${days} дн.`;
+            if (hours > 0) return `через ${hours} ч.`;
+            if (minutes > 0) return `через ${minutes} мин.`;
+            return 'скоро начнется';
+        }
+
+        // Вычисление времени до окончания вебинара
+        function getTimeUntilEnd(endTime, now) {
+            const diff = endTime - now;
+            const minutes = Math.ceil(diff / 60000);
+            if (minutes > 60) {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `Осталось: ${hours} ч. ${mins} мин.`;
+            }
+            return `Осталось: ${minutes} мин.`;
+        }
 
         // Обновление текущего времени
         function updateCurrentTime() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('ru-RU');
-            document.getElementById('currentTime').textContent = timeString;
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').textContent =
+                now.toLocaleDateString('ru-RU', options);
         }
 
-        // Получение текста по текущему времени
-        function getTextByTime() {
+        // Отображение активного вебинара
+        function displayActiveWebinar(webinar, now) {
+            const startTime = parseWebinarDateTime(webinar);
+            const endTime = new Date(startTime.getTime() + WEBINAR_DURATION * 60000);
+            const timeLeft = getTimeUntilEnd(endTime, now);
+
+            return `
+                <div class="webinar-card">
+                    <div class="webinar-status status-live">🔴 ПРЯМОЙ ЭФИР</div>
+                    <h2 class="webinar-title">${webinar.title}</h2>
+                    <p class="webinar-description">${webinar.description}</p>
+                    <div class="webinar-time">
+                        <div class="time-info">
+                            <span class="time-icon">📅</span>
+                            <span>${formatDate(startTime)}</span>
+                        </div>
+                        <div class="time-info">
+                            <span class="time-icon">🕐</span>
+                            <span>${webinar.time} - ${endTime.getHours()}:${String(endTime.getMinutes()).padStart(2, '0')}</span>
+                        </div>
+                        <div class="time-info">
+                            <span class="time-icon">⏱️</span>
+                            <span>75 минут</span>
+                        </div>
+                    </div>
+                    <div class="time-remaining">${timeLeft}</div>
+                    <div style="margin-top: 25px;">
+                        <a href="${webinar.url}" target="_blank" class="join-button">
+                            🚀 Присоединиться к вебинару
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Отображение сообщения об отсутствии активных вебинаров
+        function displayNoWebinar(nextWebinar, now) {
+            let content = `
+                <div class="no-webinar">
+                    <div class="no-webinar-icon">📚</div>
+                    <h2>Сейчас нет активных вебинаров</h2>
+                    <p>Вебинары доступны только во время их проведения</p>
+            `;
+
+            if (nextWebinar) {
+                const startTime = parseWebinarDateTime(nextWebinar);
+                const timeRemaining = getTimeRemaining(startTime, now);
+
+                content += `
+                    <div class="next-webinar">
+                        <h3>🔔 Следующий вебинар:</h3>
+                        <div class="next-webinar-item"><strong>Тема:</strong> ${nextWebinar.title}</div>
+                        <div class="next-webinar-item"><strong>Дата:</strong> ${formatDate(startTime)}</div>
+                        <div class="next-webinar-item"><strong>Время:</strong> ${nextWebinar.time}</div>
+                        <div class="next-webinar-item"><strong>Начало:</strong> ${timeRemaining}</div>
+                    </div>
+                `;
+            } else {
+                content += `<p style="margin-top: 20px; color: #999;">Все вебинары завершены</p>`;
+            }
+
+            content += `</div>`;
+            return content;
+        }
+
+        // Основная функция обновления
+        function updateDisplay() {
             const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const container = document.getElementById('webinarContainer');
 
-            // Находим подходящий текст
-            let selectedText = timeSchedule[0];
+            // Находим активный вебинар
+            const activeWebinar = webinars.find(w => isWebinarActive(w, now));
 
-            for (let i = 0; i < timeSchedule.length; i++) {
-                if (currentTime >= timeSchedule[i].time) {
-                    selectedText = timeSchedule[i];
-                } else {
-                    break;
-                }
-            }
-
-            return selectedText;
-        }
-
-        // Получение следующего времени обновления для режима времени
-        function getNextUpdateTime() {
-            const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            for (let i = 0; i < timeSchedule.length; i++) {
-                if (currentTime < timeSchedule[i].time) {
-                    return timeSchedule[i].time;
-                }
-            }
-
-            return timeSchedule[0].time + ' (завтра)';
-        }
-
-        // Обновление текста в режиме времени
-        function updateTextByTime() {
-            const textData = getTextByTime();
-            document.getElementById('mainText').textContent = textData.text;
-            document.getElementById('nextUpdate').textContent = getNextUpdateTime();
-            updateScheduleDisplay();
-        }
-
-        // Обновление текста в режиме интервалов
-        function updateTextByInterval() {
-            document.getElementById('mainText').textContent = intervalTexts[intervalIndex];
-            intervalIndex = (intervalIndex + 1) % intervalTexts.length;
-
-            const nextUpdateSeconds = intervalDuration / 1000;
-            document.getElementById('nextUpdate').textContent = `через ${nextUpdateSeconds} сек`;
-        }
-
-        // Переключение режима
-        function switchMode(mode) {
-            currentMode = mode;
-
-            if (intervalTimer) {
-                clearInterval(intervalTimer);
-                intervalTimer = null;
-            }
-
-            if (mode === 'time') {
-                document.getElementById('mode').textContent = 'По времени';
-                updateTextByTime();
-                // Проверяем каждую минуту
-                intervalTimer = setInterval(updateTextByTime, 60000);
+            if (activeWebinar) {
+                container.innerHTML = displayActiveWebinar(activeWebinar, now);
             } else {
-                document.getElementById('mode').textContent = 'Интервалы';
-                intervalIndex = 0;
-                updateTextByInterval();
-                intervalTimer = setInterval(updateTextByInterval, intervalDuration);
+                // Находим следующий вебинар
+                const futureWebinars = webinars.filter(w => {
+                    const startTime = parseWebinarDateTime(w);
+                    return startTime > now;
+                });
+
+                futureWebinars.sort((a, b) => {
+                    return parseWebinarDateTime(a) - parseWebinarDateTime(b);
+                });
+
+                const nextWebinar = futureWebinars[0] || null;
+                container.innerHTML = displayNoWebinar(nextWebinar, now);
             }
 
-            updateScheduleDisplay();
+            updateScheduleList(now);
         }
 
-        // Принудительное обновление
-        function updateTextNow() {
-            if (currentMode === 'time') {
-                updateTextByTime();
-            } else {
-                updateTextByInterval();
-            }
+        // Обновление списка расписания
+        function updateScheduleList(now) {
+            const scheduleList = document.getElementById('scheduleList');
+
+            let html = '';
+            webinars.forEach(webinar => {
+                const startTime = parseWebinarDateTime(webinar);
+                const endTime = new Date(startTime.getTime() + WEBINAR_DURATION * 60000);
+                const isActive = isWebinarActive(webinar, now);
+                const isPast = endTime < now;
+
+                let className = 'schedule-item';
+                if (isActive) className += ' active';
+                else if (isPast) className += ' past';
+
+                html += `
+                    <div class="${className}">
+                        <div class="schedule-date">
+                            ${formatDate(startTime)} в ${webinar.time}
+                            ${isActive ? ' - 🔴 СЕЙЧАС' : isPast ? ' - ✓ Завершён' : ''}
+                        </div>
+                        <div class="schedule-title">${webinar.title}</div>
+                    </div>
+                `;
+            });
+
+            scheduleList.innerHTML = html;
         }
 
-        // Отображение расписания
-        function updateScheduleDisplay() {
-            const scheduleDiv = document.getElementById('scheduleDisplay');
+        // Переключение видимости расписания
+        function toggleSchedule() {
+            const schedule = document.getElementById('fullSchedule');
+            const toggleText = document.getElementById('toggleText');
 
-            if (currentMode === 'time') {
-                const currentTextData = getTextByTime();
-                scheduleDiv.innerHTML = timeSchedule.map(item => {
-                    const isActive = item.time === currentTextData.time;
-                    return `<div class="schedule-item ${isActive ? 'active' : ''}">
-                        <strong>${item.time}</strong> - ${item.text}
-                    </div>`;
-                }).join('');
+            if (schedule.classList.contains('visible')) {
+                schedule.classList.remove('visible');
+                toggleText.textContent = '📋 Показать полное расписание';
             } else {
-                scheduleDiv.innerHTML = intervalTexts.map((text, index) => {
-                    const isActive = index === (intervalIndex === 0 ? intervalTexts.length - 1 : intervalIndex - 1);
-                    return `<div class="schedule-item ${isActive ? 'active' : ''}">
-                        <strong>Шаг ${index + 1}</strong> - ${text}
-                    </div>`;
-                }).join('');
+                schedule.classList.add('visible');
+                toggleText.textContent = '✕ Скрыть расписание';
             }
         }
 
         // Инициализация
         function init() {
             updateCurrentTime();
+            updateDisplay();
+
             setInterval(updateCurrentTime, 1000);
-            switchMode('time');
+            setInterval(updateDisplay, 10000); // Обновляем каждые 10 секунд
         }
 
-        // Запуск при загрузке страницы
         window.onload = init;
     </script>
 </body>
