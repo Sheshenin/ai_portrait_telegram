@@ -98,8 +98,22 @@ class ImageGenerator:
             # Load and compress person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Short generation prompt based on working app
-            generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas. LIKENESS IS MANDATORY. EXECUTE PROMPT: {refined_prompt}"""
+            # Generation prompt with emphasis on preserving artistic drama
+            generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL REQUIREMENTS:
+
+1. MEDIUM: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas.
+
+2. LIKENESS: The person must be 100% recognizable.
+
+3. ARTISTIC DRAMA (CRITICAL - DO NOT SIMPLIFY):
+   - PRESERVE dramatic lighting with strong shadows and highlights if specified
+   - PRESERVE exact composition from prompt (centered/off-center, close-up/wide shot, rule of thirds)
+   - PRESERVE all contrast levels - do NOT flatten to safe, even lighting
+   - DO NOT auto-correct to centered, well-lit, simple composition
+   - If prompt specifies extreme close-up, diagonal composition, or off-center placement - EXECUTE IT EXACTLY
+   - Match the artistic boldness and visual drama of the original specification
+
+EXECUTE PROMPT: {refined_prompt}"""
 
             logger.info("Calling Gemini API for image generation...")
             logger.info(f"Setting aspect ratio to: {aspect_ratio}")

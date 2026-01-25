@@ -391,11 +391,18 @@ CRITICAL INSTRUCTIONS:
 4. POSE: Use the EXACT BODY POSITION and posture from specification
 5. ATMOSPHERE: Match the EXACT mood, lighting, time of day from specification
 6. COLORS: Use the EXACT color palette from specification
-7. COMPOSITION: Match the EXACT framing and camera angle from specification
-8. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
-9. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
+7. COMPOSITION (CRITICAL): Match the EXACT framing and camera angle from specification
+   - If centered - keep centered. If off-center - keep off-center
+   - If close-up - keep close-up. If wide shot - keep wide shot
+   - DO NOT auto-correct to "safe" centered composition
+8. LIGHTING & CONTRAST (CRITICAL): Preserve dramatic lighting effects
+   - Strong shadows and highlights if specified
+   - High contrast if specified
+   - DO NOT flatten to safe, even lighting
+9. MEDIUM INTEGRITY: If photo - realistic textures. If painting - visible brushstrokes. If sketch - pencil marks.
+10. NO SMOOTHING: Demand raw texture matching the medium (film grain / canvas texture / paper fibers)
 
-Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, and atmosphere.
+Think of this as: Take this person's face and place them into that exact scene with that exact clothing, pose, lighting, atmosphere, and artistic composition. PRESERVE the artistic boldness and drama of the original.
 
 Output a single comprehensive generation prompt that combines everything."""
 
