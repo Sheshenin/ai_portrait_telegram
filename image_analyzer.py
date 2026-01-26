@@ -119,14 +119,26 @@ class ImageAnalyzer:
         # Детальный промпт для анализа медиума и стиля (как в рабочем приложении)
         prompt = """Perform a comprehensive forensic analysis of this image:
 
-STAGE 1: MEDIUM CLASSIFICATION
-Identify the exact medium: Is it a high-fidelity Photograph, an Oil/Acrylic Painting, a Watercolor, a Pencil/Charcoal Sketch, an Etching, or Digital Art?
+STAGE 1: MEDIUM CLASSIFICATION (CRITICAL - BE PRECISE)
+Identify the exact medium. Choose ONLY ONE from this list:
+- High-fidelity PHOTOGRAPH (realistic skin textures, pores, lens effects, natural lighting)
+- VECTOR GRAPHICS / FLAT DESIGN (clean lines, flat colors, no textures, sharp edges, digital illustration with uniform fills)
+- DIGITAL ILLUSTRATION (painterly digital art with brush textures, gradient shading, NOT flat vector)
+- Oil/Acrylic PAINTING (visible brushstrokes, impasto, canvas texture)
+- WATERCOLOR (paper texture, color bleeding, transparent washes)
+- Pencil/Charcoal SKETCH (graphite/charcoal marks, hatching, paper grain)
+- ETCHING (line-based, cross-hatching, printing technique)
+- 3D RENDER (computer-generated, smooth surfaces, perfect geometry)
+
+CRITICAL: Vector graphics have FLAT COLORS and CLEAN LINES - do NOT confuse with photos or 3D renders.
 
 STAGE 2: MEDIUM-SPECIFIC TECHNICAL SPECIFICATION
 - IF PHOTOGRAPHY: Describe focal length, aperture (depth of field), film stock grain, lighting setup (e.g., Rembrandt, butterfly), and physical print texture (glossy, matte, silver gelatin).
+- IF VECTOR GRAPHICS / FLAT DESIGN: Describe line weight, stroke style (solid/none), fill colors (flat/gradient), simplification level, characteristic features (minimalist/detailed), color palette (limited/vibrant), edge treatment (sharp/rounded).
+- IF DIGITAL ILLUSTRATION: Describe brush textures, blending modes, gradient usage, shading technique, digital painting style.
 - IF PAINTING/WATERCOLOR: Describe brushwork scale, impasto thickness, canvas weave density, paper "tooth" (cold-press texture), pigment bleeding, and water stains.
 - IF SKETCH: Describe graphite/charcoal grit, smudge marks, eraser ghosts, hatching density, and paper fibers.
-- IF DIGITAL: Identify the specific software aesthetic (brush engines used).
+- IF 3D RENDER: Describe rendering engine aesthetic, material properties (metallic, plastic, glass), lighting model (PBR, ray-traced), geometric precision.
 
 STAGE 3: COMPOSITION & CHARACTER (CRITICAL - DESCRIBE IN DETAIL)
 1. POSE & PLACEMENT: Exact posture, body position, and placement in frame (centered, off-center, rule of thirds, etc.)
