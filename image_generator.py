@@ -98,12 +98,12 @@ class ImageGenerator:
             # Load and compress person's image for faster processing
             person_image = self.compress_image(person_image_path, max_size=1024)
 
-            # Generation prompt with emphasis on preserving artistic drama
+            # Generation prompt with emphasis on LIKENESS FIRST
             generation_prompt = f"""MASTERPIECE RENDERING. CRITICAL REQUIREMENTS:
 
-1. MEDIUM: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas.
+1. LIKENESS IS MANDATORY (MOST IMPORTANT): The person in the attached photo MUST be 100% recognizable in the final result. Preserve exact facial features, proportions, unique characteristics. This is the PRIMARY requirement - do NOT compromise facial identity.
 
-2. LIKENESS: The person must be 100% recognizable.
+2. MEDIUM: Respect the MEDIUM identified in the prompt. If it's a photo, make it look like a physical print. If it's art, show the physical texture of paper/canvas.
 
 3. ARTISTIC DRAMA (CRITICAL - DO NOT SIMPLIFY):
    - PRESERVE dramatic lighting with strong shadows and highlights if specified
