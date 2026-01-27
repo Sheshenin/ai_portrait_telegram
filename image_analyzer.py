@@ -352,6 +352,7 @@ IMPORTANT: Return response in JSON format:
     def refine_with_person(
         self,
         reference_data: Dict[str, str],
+        person_data: Dict[str, str],
         person_image_path: str
     ) -> str:
         """
@@ -359,6 +360,7 @@ IMPORTANT: Return response in JSON format:
 
         Args:
             reference_data: Complete reference analysis (medium, clothing, environment, etc.)
+            person_data: Person's features (gender, age, hair)
             person_image_path: Path to person's photo
 
         Returns:
@@ -378,6 +380,13 @@ IMPORTANT: Return response in JSON format:
         pose = reference_data.get('pose', '')
         composition = reference_data.get('composition', '')
 
+        # Extract person features
+        gender = person_data.get('gender', 'adult')
+        age = person_data.get('age', 'adult')
+        hair_color = person_data.get('hair_color', 'natural')
+        hair_length = person_data.get('hair_length', 'medium')
+        hair_style = person_data.get('hair_style', 'natural')
+
         prompt = f"""REFERENCE IMAGE COMPLETE SPECIFICATION:
 
 MEDIUM & TECHNIQUE: {medium_spec}
@@ -396,10 +405,20 @@ COMPOSITION: {composition}
 
 ---
 
+PERSON IN PHOTO (IDENTITY SOURCE):
+- Gender: {gender}
+- Age: approximately {age} years
+- Hair color: {hair_color}
+- Hair length: {hair_length}
+- Hair style: {hair_style}
+
+---
+
 TASK: Create a portrait of the person in this photo, but place them INTO the scene described above.
 
 CRITICAL INSTRUCTIONS:
 1. FACE IDENTITY: Use the EXACT face from this photo - this person must be 100% recognizable (facial features, proportions, age, ethnicity)
+1a. HAIR (CRITICAL): Use the EXACT hair from this person's photo - hair color: {hair_color}, hair length: {hair_length}, hair style: {hair_style}. DO NOT use hair/hairstyle from reference image if different.
 2. CLOTHING: Use the CLOTHING from the reference specification above (adapt for gender if needed, but keep style/era/fabric)
 3. ENVIRONMENT: Use the EXACT BACKGROUND and environment from specification (same setting, objects, scenery)
 4. POSE: Use the EXACT BODY POSITION and posture from specification

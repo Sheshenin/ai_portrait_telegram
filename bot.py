@@ -188,10 +188,16 @@ class AIPortraitBot:
             logger.info(f"Environment: {reference_data.get('environment', '')[:50]}...")
             logger.info(f"Aspect ratio: {aspect_ratio}")
 
+            # Step 1.5: Analyze person image
+            logger.info("Step 1.5: Analyzing person's features...")
+            person_data = self.analyzer.analyze_person_image(person_path)
+            logger.info(f"Person: {person_data.get('gender', '')}, hair: {person_data.get('hair_color', '')} {person_data.get('hair_length', '')}")
+
             # Step 2: Refine prompt with person's photo
             logger.info("Step 2: Refining prompt with person's identity...")
             refined_prompt = self.analyzer.refine_with_person(
                 reference_data=reference_data,
+                person_data=person_data,
                 person_image_path=person_path
             )
 
